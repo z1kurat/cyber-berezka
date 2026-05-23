@@ -62,13 +62,18 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 
-# Apex domain (cyber-berezka.tw1.ru) — redirects "/" to landing on home.*,
-# but serves /auth, /cabinet, /api/sub natively.
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
 async def root(request: Request):
+    """Serve landing on the canonical site host; redirect from any other host.
+
+    `landing_domain` in .env is set to the same value as SITE_HOST during
+    the beget migration (nip.io stage and onward), so the site host both
+    matches `home.*` (production) and the bare nip.io equivalent. The
+    self-redirect that used to happen in apex→home is now handled by Caddy
+    via APEX_REDIRECT_HOST.
+    """
     host = request.headers.get("host", "")
-    # On home.* serve the landing inline. On apex redirect to home canonical.
-    if host.startswith("home."):
+    if host.startswith("home.") or host == settings.landing_domain:
         return await landing.index(request)
     return RedirectResponse(
         url=f"https://{settings.landing_domain}/", status_code=302
