@@ -1,0 +1,188 @@
+# Cyber Berezka - Remnawave Panel + Caddy reverse proxy.
+#
+# Source: official Remnawave production compose (remnawave/backend repo,
+# docker-compose-prod.yml) merged with the official Caddy reverse-proxy
+# template (panel repo, docs/install/reverse-proxies/caddy.md). Only the
+# minimum changes needed for our deployment have been made:
+#   - panel + Caddy combined into one file (simpler ops than two composes)
+#   - bind Caddy to host :80 and :443
+#   - all secrets/domain values driven through .env
+
+x-common: &common
+  ulimits:
+    nofile:
+      soft: 1048576
+      hard: 1048576
+  restart: unless-stopped
+  networks:
+    - remnawave-network
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: "100m"
+      max-file: "5"
+
+x-env: &env
+  env_file: .env
+
+services:
+  remnawave:
+    image: remnawave/backend:2.7.4
+    container_name: remnawave
+    hostname: remnawave
+    <<: [*common, *logging, *env]
+    volumes:
+      - valkey-socket:/var/run/valkey
+    ports:
+      - "127.0.0.1:3000:${APP_PORT:-3000}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${METRICS_PORT:-3001}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      remnawave-db:
+        condition: service_healthy
+      remnawave-redis:
+        condition: service_healthy
+
+  remnawave-db:
+    image: postgres:17.6
+    container_name: remnawave-db
+    hostname: remnawave-db
+    <<: [*common, *logging, *env]
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - TZ=UTC
+    ports:
+      - "127.0.0.1:6767:5432"
+    volumes:
+      - remnawave-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 10s
+      retries: 3
+
+  remnawave-redis:
+    image: valkey/valkey:9-alpine
+    container_name: remnawave-redis
+    hostname: remnawave-redis
+    <<: [*common, *logging]
+    volumes:
+      - valkey-socket:/var/run/valkey
+    command: >
+      valkey-server
+      --save ""
+      --appendonly no
+      --maxmemory-policy noeviction
+      --loglevel warning
+      --unixsocket /var/run/valkey/valkey.sock
+      --unixsocketperm 777
+      --port 0
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-s", "/var/run/valkey/valkey.sock", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+
+  caddy:
+    image: caddy:2.9
+    container_name: caddy
+    hostname: caddy
+    <<: [*common, *logging]
+    environment:
+      - PANEL_DOMAIN=${PANEL_DOMAIN}
+      - SITE_DOMAIN=${SITE_DOMAIN}
+      - LANDING_DOMAIN=${LANDING_DOMAIN}
+      - ADMIN_IP_WHITELIST=${ADMIN_IP_WHITELIST:-127.0.0.1}
+      - ACME_EMAIL=${ACME_EMAIL}
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      remnawave:
+        condition: service_healthy
+      site:
+        condition: service_healthy
+
+  site:
+    image: cyber-berezka-site:latest
+    build:
+      context: ./site
+    container_name: site
+    hostname: site
+    <<: [*common, *logging, *env]
+    environment:
+      - SITE_DOMAIN=${SITE_DOMAIN}
+      - LANDING_DOMAIN=${LANDING_DOMAIN}
+      - APP_DB_URL=postgresql+asyncpg://${APP_DB_USER:-app}:${APP_DB_PASSWORD}@db-app:5432/${APP_DB_NAME:-cyber_berezka}
+      - SITE_REDIS_URL=redis://site-redis:6379/0
+      - REMNAWAVE_API_URL=http://remnawave:3000
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      db-app:
+        condition: service_healthy
+      site-redis:
+        condition: service_healthy
+
+  db-app:
+    image: postgres:17.6
+    container_name: db-app
+    hostname: db-app
+    <<: [*common, *logging]
+    environment:
+      - POSTGRES_USER=${APP_DB_USER:-app}
+      - POSTGRES_PASSWORD=${APP_DB_PASSWORD}
+      - POSTGRES_DB=${APP_DB_NAME:-cyber_berezka}
+      - TZ=UTC
+    volumes:
+      - db-app-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 10s
+      retries: 3
+
+  site-redis:
+    image: redis:7-alpine
+    container_name: site-redis
+    hostname: site-redis
+    <<: [*common, *logging]
+    command: redis-server --save "" --appendonly no --maxmemory 128mb --maxmemory-policy allkeys-lru --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 3
+
+networks:
+  remnawave-network:
+    name: remnawave-network
+    driver: bridge
+
+volumes:
+  remnawave-db-data:
+    name: remnawave-db-data
+  valkey-socket:
+    name: valkey-socket
+  caddy-data:
+    name: caddy-data
+  caddy-config:
+    name: caddy-config
+  db-app-data:
+    name: db-app-data

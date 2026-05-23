@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Self-hosted fonts loaded from /static/fonts. Subsets: latin + cyrillic. */
+  @font-face {
+    font-family: 'Cormorant Garamond';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/static/fonts/cormorant-garamond.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/static/fonts/inter.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'JetBrains Mono';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/static/fonts/jetbrains-mono.woff2') format('woff2');
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-bg-main text-text-primary font-sans antialiased;
+  }
+  h1, h2, h3 {
+    @apply font-serif tracking-tight;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-cta text-white font-medium
+           px-7 py-3 rounded-md
+           shadow-cta hover:shadow-ctaHover
+           transition-all duration-200 ease-out
+           hover:bg-cta-hover hover:-translate-y-0.5
+           focus:outline-none focus:ring-2 focus:ring-cta focus:ring-offset-2 focus:ring-offset-bg-main;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           border border-accent-gold text-text-primary font-medium
+           px-7 py-3 rounded-md
+           transition-all duration-200 ease-out
+           hover:bg-accent-gold hover:text-white;
+  }
+  .card {
+    @apply bg-bg-card rounded-xl shadow-card p-8
+           border border-border-light
+           transition-all duration-300 ease-out;
+  }
+  .card-hover {
+    @apply hover:-translate-y-1 hover:shadow-[0_16px_32px_rgba(26,24,24,0.08)];
+  }
+  .gold-divider {
+    @apply h-px bg-gradient-to-r from-transparent via-accent-gold to-transparent;
+  }
+  .status-dot {
+    @apply inline-block w-2.5 h-2.5 rounded-full bg-success animate-gentle-pulse;
+  }
+}

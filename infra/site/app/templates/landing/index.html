@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block content %}
+{# Hero #}
+<section class="relative overflow-hidden">
+    <div class="absolute inset-0 pointer-events-none opacity-30" aria-hidden="true">
+        {# Decorative birch silhouettes — pure CSS, no images #}
+        <div class="absolute -right-20 top-10 w-96 h-[600px] bg-gradient-to-br from-accent-gold/10 to-transparent rounded-full blur-3xl"></div>
+        <div class="absolute -left-20 top-40 w-80 h-[500px] bg-gradient-to-tr from-accent-gold/5 to-transparent rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="relative max-w-6xl mx-auto px-6 pt-24 pb-20 md:pt-32 md:pb-28">
+        <div class="max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-bg-card border border-border-light text-sm text-text-secondary mb-8 animate-fade-in-up">
+                <span class="status-dot"></span>
+                Защищённое соединение
+            </div>
+
+            <h1 class="font-serif text-hero font-medium mb-6 animate-fade-in-up" style="animation-delay: 80ms">
+                Cyber<br>
+                <span class="text-accent-gold">Berezka</span>
+            </h1>
+
+            <p class="text-2xl md:text-3xl text-text-secondary font-light mb-12 animate-fade-in-up" style="animation-delay: 160ms">
+                Своё. Цифровое. Защищённое.
+            </p>
+
+            <div class="flex flex-wrap items-center gap-4 animate-fade-in-up" style="animation-delay: 240ms">
+                <a href="https://{{ site_domain }}/auth/register" class="btn-primary">
+                    Начать защиту
+                    <span aria-hidden="true">→</span>
+                </a>
+                <a href="#features" class="btn-secondary">
+                    Узнать больше
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# Features #}
+<section id="features" class="py-24 bg-bg-alt">
+    <div class="max-w-6xl mx-auto px-6">
+        <h2 class="font-serif text-4xl md:text-5xl mb-4">Когда это нужно</h2>
+        <p class="text-text-secondary text-lg mb-16 max-w-2xl">
+            Шифрование защищает ваши данные в ситуациях, где обычное соединение уязвимо.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for f in features %}
+            <article class="card card-hover">
+                <div class="text-4xl mb-5">{{ f.icon }}</div>
+                <h3 class="text-xl font-serif mb-3">{{ f.title }}</h3>
+                <p class="text-text-secondary leading-relaxed">{{ f.text }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{# Tech trust #}
+<section class="py-24">
+    <div class="max-w-6xl mx-auto px-6">
+        <div class="text-center mb-16">
+            <h2 class="font-serif text-4xl md:text-5xl mb-4">Технологии</h2>
+            <p class="text-text-secondary text-lg max-w-xl mx-auto">
+                Современные стандарты шифрования и инфраструктура за пределами юрисдикции РФ.
+            </p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {% for t in tech_facts %}
+            <div class="text-center">
+                <div class="font-serif text-4xl md:text-5xl text-accent-gold mb-3">{{ t.big }}</div>
+                <div class="text-sm text-text-secondary leading-relaxed">{{ t.text }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="gold-divider mt-16"></div>
+    </div>
+</section>
+
+{# How it works #}
+<section id="how-it-works" class="py-24 bg-bg-alt">
+    <div class="max-w-6xl mx-auto px-6">
+        <h2 class="font-serif text-4xl md:text-5xl mb-16 text-center">Как это работает</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center">
+                <div class="font-serif text-6xl text-accent-gold/30 mb-4">1</div>
+                <h3 class="text-xl font-serif mb-3">Регистрация по email</h3>
+                <p class="text-text-secondary leading-relaxed">Минимум данных — только email и пароль.</p>
+            </div>
+            <div class="text-center">
+                <div class="font-serif text-6xl text-accent-gold/30 mb-4">2</div>
+                <h3 class="text-xl font-serif mb-3">Получите ключ за 30 секунд</h3>
+                <p class="text-text-secondary leading-relaxed">Один клик в кабинете — мгновенная генерация подписки.</p>
+            </div>
+            <div class="text-center">
+                <div class="font-serif text-6xl text-accent-gold/30 mb-4">3</div>
+                <h3 class="text-xl font-serif mb-3">Подключение в один клик</h3>
+                <p class="text-text-secondary leading-relaxed">Импорт в приложение по ссылке или QR-коду.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# FAQ #}
+<section id="faq" class="py-24">
+    <div class="max-w-3xl mx-auto px-6">
+        <h2 class="font-serif text-4xl md:text-5xl mb-12 text-center">Частые вопросы</h2>
+        <div class="space-y-4" x-data="{ open: null }">
+            {% for item in faq %}
+            <article class="card !p-0 overflow-hidden">
+                <button
+                    @click="open = (open === {{ loop.index }} ? null : {{ loop.index }})"
+                    class="w-full text-left px-8 py-6 flex items-center justify-between gap-4 hover:bg-bg-alt/50 transition">
+                    <span class="font-serif text-xl">{{ item.q }}</span>
+                    <span class="text-accent-gold text-2xl transition-transform"
+                          :class="open === {{ loop.index }} ? 'rotate-45' : ''">+</span>
+                </button>
+                <div x-show="open === {{ loop.index }}" x-collapse class="px-8 pb-6 text-text-secondary leading-relaxed">
+                    {{ item.a }}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{# CTA repeat #}
+<section class="py-24 bg-bg-alt">
+    <div class="max-w-2xl mx-auto px-6 text-center">
+        <h2 class="font-serif text-4xl md:text-5xl mb-4">Готовы начать?</h2>
+        <p class="text-text-secondary text-lg mb-8">
+            Регистрация занимает минуту. Первый ключ — сразу после подтверждения email.
+        </p>
+        <a href="https://{{ site_domain }}/auth/register" class="btn-primary text-lg">
+            Зарегистрироваться
+            <span aria-hidden="true">→</span>
+        </a>
+    </div>
+</section>
+{% endblock %}

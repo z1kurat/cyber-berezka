@@ -1,0 +1,32 @@
+[Unit]
+Description=Cyber Berezka — bind IPv6 pool to eth0 and wait for routability
+Documentation=https://github.com/z1kurat/cyber-berezka
+# Run after the network is up but before Docker, so containers (especially
+# the Xray node in network_mode=host) start with all routable IPv6 ready.
+After=network-online.target
+Wants=network-online.target
+Before=docker.service containerd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Step 1: apply the IPv6 pool from /etc/cyber-berezka/ipv6-pool.txt to eth0
+ExecStart=/root/cyber-berezka/scripts/setup_ipv6_addresses.sh
+# Step 2: wait until Timeweb's upstream router accepts traffic from each address
+ExecStart=/root/cyber-berezka/scripts/wait_ipv6_ready.sh
+# Defensive timeouts in case wait_ipv6_ready hangs unexpectedly
+TimeoutStartSec=600
+# No restart: if the pool never becomes routable, we want manual intervention
+Restart=no
+# Run as root because we need CAP_NET_ADMIN for 'ip addr add'
+User=root
+Group=root
+# Minimal hardening (the script touches /etc and network state, can't sandbox much)
+ProtectHome=yes
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

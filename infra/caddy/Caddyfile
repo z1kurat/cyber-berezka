@@ -1,0 +1,103 @@
+# Cyber Berezka — Caddy reverse proxy.
+#
+# Routing:
+#   home.cyber-berezka.tw1.ru           → site (landing) + /admin/* → panel (IP-allowlist)
+#   cyber-berezka.tw1.ru                → site (auth, cabinet, /api/sub, /legal)
+#   admin.194-87-83-31.nip.io           → panel  (legacy nip.io domain, kept during transition)
+#   any other Host                      → 204 + internal TLS (anti-fingerprinting)
+
+{
+    email {$ACME_EMAIL}
+}
+
+# === Main public site (apex domain) ========================================
+{$SITE_DOMAIN} {
+    # Block known vulnerable clients (habr.com/ru/articles/1020080) on the
+    # subscription endpoint, where the user-agent matters most.
+    @blocked_clients header User-Agent *Happ*
+    handle @blocked_clients {
+        respond "Client not supported. Use v2RayTun, Hiddify, or NekoBox instead." 403
+    }
+
+    # /api/sub/* — публичные subscription URLs клиентов VPN. Проксируем
+    # напрямую в panel (там реализована логика выдачи конфигов по shortUuid).
+    handle /api/sub/* {
+        reverse_proxy http://remnawave:3000
+    }
+
+    # Everything else — site app (landing redirect / auth / cabinet / legal).
+    handle {
+        reverse_proxy * http://site:8000
+    }
+
+    encode gzip zstd
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+}
+
+# === Landing + admin (home subdomain) ======================================
+{$LANDING_DOMAIN} {
+    # /admin/* — Remnawave panel, restricted by IP. Empty whitelist => 403 for
+    # everyone. Add admin IPs via ADMIN_IP_WHITELIST env (space-separated).
+    @admin path /admin /admin/*
+    @admin_allowed {
+        path /admin /admin/*
+        remote_ip {$ADMIN_IP_WHITELIST}
+    }
+    handle @admin_allowed {
+        # Strip /admin prefix when forwarding to the panel.
+        uri strip_prefix /admin
+        reverse_proxy http://remnawave:3000
+    }
+    handle @admin {
+        respond "403 Forbidden" 403
+    }
+
+    # Block Happ on subscription pulls (defence-in-depth on landing host too).
+    @blocked_clients header User-Agent *Happ*
+    handle @blocked_clients {
+        respond "Client not supported." 403
+    }
+
+    # Everything else — site app, which serves a landing on home.* via Host check.
+    handle {
+        reverse_proxy * http://site:8000
+    }
+
+    encode gzip zstd
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+}
+
+# === Legacy panel domain (nip.io) — keep during DNS migration ==============
+{$PANEL_DOMAIN} {
+    @blocked_clients header User-Agent *Happ*
+    handle @blocked_clients {
+        respond "Client not supported. Use v2RayTun, Hiddify, or NekoBox instead." 403
+    }
+    reverse_proxy * http://remnawave:3000
+    encode gzip zstd
+    header {
+        Strict-Transport-Security "max-age=63072000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+}
+
+# === Catch-all (anti-fingerprint) ==========================================
+:443 {
+    tls internal
+    respond 204
+}

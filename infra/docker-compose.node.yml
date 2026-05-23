@@ -1,0 +1,34 @@
+# Cyber Berezka — Remnawave Node.
+#
+# Separate from the panel compose because in production the node lives on a
+# different VPS than the panel. Even with both on one host today, this split
+# keeps the migration path clean.
+#
+# network_mode: host is required so Xray can bind on the host's full set of
+# IPv6 addresses (research §7) — Docker bridge IPv6 cannot give us
+# per-connection sendThrough across the routable /128 pool.
+#
+# The node listens on host:${NODE_PORT} for mTLS from the panel. With our
+# current firewall (default ACCEPT for INPUT, rule 1) this port is also
+# reachable from the public internet — mTLS protects access, but a future
+# hardening task should restrict it to docker bridges.
+
+services:
+  remnanode:
+    image: remnawave/node:2.7.0
+    container_name: remnanode
+    hostname: remnanode
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - NODE_PORT=${NODE_PORT}
+      - SECRET_KEY=${NODE_SECRET_KEY}
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576

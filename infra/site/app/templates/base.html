@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#F7F3EB">
+    <title>{% block title %}Cyber Berezka — Защищённое соединение{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Шифрование вашего интернет-соединения. Защита персональных данных в публичных сетях.{% endblock %}">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="icon" href="/static/img/favicon.svg" type="image/svg+xml">
+    <script defer src="https://unpkg.com/alpinejs@3.14.3/dist/cdn.min.js"></script>
+</head>
+<body>
+    {% block header %}
+    <header class="border-b border-border-light bg-bg-main/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="https://{{ landing_domain }}/" class="font-serif text-2xl tracking-tight">
+                Cyber <span class="text-accent-gold">Berezka</span>
+            </a>
+            <nav class="hidden md:flex items-center gap-8 text-sm text-text-secondary">
+                <a href="https://{{ landing_domain }}/#features" class="hover:text-text-primary transition">Возможности</a>
+                <a href="https://{{ landing_domain }}/#how-it-works" class="hover:text-text-primary transition">Как работает</a>
+                <a href="https://{{ landing_domain }}/#faq" class="hover:text-text-primary transition">Вопросы</a>
+                <a href="https://{{ site_domain }}/auth/login" class="text-text-primary">Войти</a>
+                <a href="https://{{ site_domain }}/auth/register" class="btn-primary !py-2 !px-5">Начать защиту</a>
+            </nav>
+        </div>
+    </header>
+    {% endblock %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}
+    <footer class="mt-32 border-t border-border-light bg-bg-alt">
+        <div class="max-w-6xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+            <div>
+                <div class="font-serif text-xl mb-3">Cyber <span class="text-accent-gold">Berezka</span></div>
+                <p class="text-text-muted leading-relaxed">
+                    Защищённое соединение. Шифрование вашего интернет-трафика и защита персональных данных.
+                </p>
+            </div>
+            <div>
+                <div class="font-medium mb-3 text-text-primary">Продукт</div>
+                <ul class="space-y-2 text-text-secondary">
+                    <li><a href="https://{{ landing_domain }}/#features" class="hover:text-text-primary">Возможности</a></li>
+                    <li><a href="https://{{ landing_domain }}/#how-it-works" class="hover:text-text-primary">Как работает</a></li>
+                    <li><a href="https://{{ landing_domain }}/#faq" class="hover:text-text-primary">Вопросы</a></li>
+                </ul>
+            </div>
+            <div>
+                <div class="font-medium mb-3 text-text-primary">Документы</div>
+                <ul class="space-y-2 text-text-secondary">
+                    <li><a href="https://{{ site_domain }}/legal/terms" class="hover:text-text-primary">Условия использования</a></li>
+                    <li><a href="https://{{ site_domain }}/legal/privacy" class="hover:text-text-primary">Политика конфиденциальности</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-border-light">
+            <div class="max-w-6xl mx-auto px-6 py-6 text-xs text-text-muted">
+                © {{ 2026 }} Cyber Berezka. Все права защищены.
+            </div>
+        </div>
+    </footer>
+    {% endblock %}
+</body>
+</html>
