@@ -1,31 +1,21 @@
 # Cyber Berezka — Caddy reverse proxy.
-#
-# Routing:
-#   home.cyber-berezka.tw1.ru           → site (landing) + /admin/* → panel (IP-allowlist)
-#   cyber-berezka.tw1.ru                → site (auth, cabinet, /api/sub, /legal)
-#   admin.194-87-83-31.nip.io           → panel  (legacy nip.io domain, kept during transition)
-#   any other Host                      → 204 + internal TLS (anti-fingerprinting)
+# Variables (from infra/.env, mapped by compose):
+#   SITE_HOST            — main user-facing host (home.cyber-berezka.ru or nip.io)
+#   ADMIN_HOST           — panel host (admin.cyber-berezka.ru or nip.io); also serves /api/sub
+#   APEX_REDIRECT_HOST   — optional apex (cyber-berezka.ru) for 301 → SITE_HOST. Empty in Stage 1 (nip.io).
+#   ADMIN_IP_WHITELIST   — space-separated CIDRs allowed to /admin/, /admin/*, /api/admin/*
 
 {
     email {$ACME_EMAIL}
 }
 
-# === Main public site (apex domain) ========================================
-{$SITE_DOMAIN} {
-    # Block known vulnerable clients (habr.com/ru/articles/1020080) on the
-    # subscription endpoint, where the user-agent matters most.
+# === Site host (user-facing: landing + auth + cabinet + legal) ============
+{$SITE_HOST} {
     @blocked_clients header User-Agent *Happ*
     handle @blocked_clients {
-        respond "Client not supported. Use v2RayTun, Hiddify, or NekoBox instead." 403
+        respond "Client not supported. Use v2RayTun, Hiddify, or NekoBox." 403
     }
 
-    # /api/sub/* — публичные subscription URLs клиентов VPN. Проксируем
-    # напрямую в panel (там реализована логика выдачи конфигов по shortUuid).
-    handle /api/sub/* {
-        reverse_proxy http://remnawave:3000
-    }
-
-    # Everything else — site app (landing redirect / auth / cabinet / legal).
     handle {
         reverse_proxy * http://site:8000
     }
@@ -40,33 +30,37 @@
     }
 }
 
-# === Landing + admin (home subdomain) ======================================
-{$LANDING_DOMAIN} {
-    # /admin/* — Remnawave panel, restricted by IP. Empty whitelist => 403 for
-    # everyone. Add admin IPs via ADMIN_IP_WHITELIST env (space-separated).
-    @admin path /admin /admin/*
-    @admin_allowed {
-        path /admin /admin/*
-        remote_ip {$ADMIN_IP_WHITELIST}
-    }
-    handle @admin_allowed {
-        # Strip /admin prefix when forwarding to the panel.
-        uri strip_prefix /admin
-        reverse_proxy http://remnawave:3000
-    }
-    handle @admin {
-        respond "403 Forbidden" 403
-    }
-
-    # Block Happ on subscription pulls (defence-in-depth on landing host too).
+# === Admin host (panel + subscription endpoints) ===========================
+# /api/sub/*           — public subscription URLs (clients must reach these)
+# /admin, /admin/*     — Remnawave dashboard UI (IP-restricted)
+# /api/admin/*         — Remnawave admin API (IP-restricted)
+# anything else        — panel (REST API, OpenAPI docs etc.)
+{$ADMIN_HOST} {
     @blocked_clients header User-Agent *Happ*
     handle @blocked_clients {
         respond "Client not supported." 403
     }
 
-    # Everything else — site app, which serves a landing on home.* via Host check.
+    handle /api/sub/* {
+        reverse_proxy http://remnawave:3000
+    }
+
+    @admin_paths {
+        path /admin /admin/* /api/admin/*
+    }
+    @admin_allowed {
+        path /admin /admin/* /api/admin/*
+        remote_ip {$ADMIN_IP_WHITELIST}
+    }
+    handle @admin_allowed {
+        reverse_proxy http://remnawave:3000
+    }
+    handle @admin_paths {
+        respond "403 Forbidden" 403
+    }
+
     handle {
-        reverse_proxy * http://site:8000
+        reverse_proxy * http://remnawave:3000
     }
 
     encode gzip zstd
@@ -79,24 +73,14 @@
     }
 }
 
-# === Legacy panel domain (nip.io) — keep during DNS migration ==============
-{$PANEL_DOMAIN} {
-    @blocked_clients header User-Agent *Happ*
-    handle @blocked_clients {
-        respond "Client not supported. Use v2RayTun, Hiddify, or NekoBox instead." 403
-    }
-    reverse_proxy * http://remnawave:3000
-    encode gzip zstd
-    header {
-        Strict-Transport-Security "max-age=63072000; includeSubDomains"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        -Server
-    }
+# === Apex redirect (only active when APEX_REDIRECT_HOST is set) ===========
+# Caddy will accept the placeholder host but no real client can reach it,
+# so the block is inert in Stage 1 (APEX_REDIRECT_HOST empty).
+{$APEX_REDIRECT_HOST:placeholder.invalid} {
+    redir https://{$SITE_HOST}{uri} 301
 }
 
-# === Catch-all (anti-fingerprint) ==========================================
+# === Catch-all (anti-fingerprint) =========================================
 :443 {
     tls internal
     respond 204
