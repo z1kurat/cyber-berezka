@@ -11,7 +11,7 @@ HOSTNAME_NEW="berezka-coordinator"
 echo "===> [1/10] Apt update + base packages"
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
-apt-get install -y -qq ca-certificates curl gnupg lsb-release iptables-persistent rsync ufw openssl
+apt-get install -y -qq ca-certificates curl gnupg lsb-release rsync ufw openssl
 
 echo "===> [2/10] Hostname -> ${HOSTNAME_NEW}"
 if [[ "$(hostname)" != "${HOSTNAME_NEW}" ]]; then
