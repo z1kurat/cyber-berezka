@@ -1,0 +1,17 @@
+[Unit]
+Description=Cyber Berezka iptables rules (coordinator role)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Coordinator relies on ufw for inbound filtering (managed by
+# scripts/provision_new_server.sh). This unit is a placeholder + extension
+# point — if we ever need extra iptables rules beyond ufw on the coordinator,
+# they go in ExecStart lines here.
+ExecStart=/bin/true
+ExecReload=/bin/true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+[Unit]
+Description=Cyber Berezka iptables rules (node-only role)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Open Reality port for VPN clients (everyone).
+ExecStart=/usr/sbin/iptables -I INPUT 1 -p tcp --dport 2053 -j ACCEPT
+# Allow node-API only from coordinator VPS (212.74.231.217).
+ExecStart=/usr/sbin/iptables -I INPUT 2 -p tcp --dport 2222 -s 212.74.231.217/32 -j ACCEPT
+ExecStart=/usr/sbin/iptables -I INPUT 3 -p tcp --dport 2222 -j DROP
+# Legacy panel-to-node docker bridge (kept in case the old VPS ever runs a
+# local coordinator for debugging).
+ExecStart=/usr/sbin/iptables -I INPUT 4 -s 172.21.0.0/16 -j ACCEPT
+
+ExecStop=/usr/sbin/iptables -D INPUT -p tcp --dport 2053 -j ACCEPT
+ExecStop=/usr/sbin/iptables -D INPUT -p tcp --dport 2222 -s 212.74.231.217/32 -j ACCEPT
+ExecStop=/usr/sbin/iptables -D INPUT -p tcp --dport 2222 -j DROP
+ExecStop=-/usr/sbin/iptables -D INPUT -s 172.21.0.0/16 -j ACCEPT
+
+[Install]
+WantedBy=multi-user.target
