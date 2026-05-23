@@ -145,6 +145,16 @@ def main(argv: list[str] | None = None) -> int:
         default=HERE / "state.json",
         help="Path for state.json (default: infra/remnawave/state.json)",
     )
+    p_rotate = subs.add_parser(
+        "rotate-reality-key",
+        help="generate new Reality keypair via Remnawave x25519 endpoint, write to .env",
+    )
+    p_rotate.add_argument(
+        "--env-file-target",
+        type=Path,
+        default=HERE.parent / ".env",
+        help="Path to .env where new keys are written (default: infra/.env)",
+    )
     # Stages to follow: plan, apply, validate, destroy.
     args = parser.parse_args(argv)
 
@@ -157,6 +167,13 @@ def main(argv: list[str] | None = None) -> int:
             if args.cmd == "import":
                 from _lib.importer import cmd_import
                 return cmd_import(client, args.out_dir, args.state_file)
+            if args.cmd == "rotate-reality-key":
+                from _lib.reality import rotate_reality_keys, write_keys_to_env
+                priv, pub = rotate_reality_keys(client)
+                write_keys_to_env(args.env_file_target, priv, pub)
+                print(f"Reality keys rotated. Written to {args.env_file_target}")
+                print(f"Public key (use for hosts.yaml / clients): {pub}")
+                return 0
     except RuntimeError as exc:
         print(f"Configuration error: {exc}", file=sys.stderr)
         print(

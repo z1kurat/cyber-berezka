@@ -113,3 +113,11 @@ class RemnawaveClient:
 
     def health(self) -> dict:
         return self.get("/api/system/health")
+
+    def generate_x25519(self) -> dict[str, str]:
+        """POST /api/system/tools/x25519/generate — generate new Reality keypair.
+
+        Returns dict with 'privateKey' and 'publicKey' (the client unwraps the
+        Remnawave {"response": ...} envelope automatically).
+        """
+        return self.post("/api/system/tools/x25519/generate", json={})
