@@ -21,8 +21,10 @@ Restart=no
 # Run as root because we need CAP_NET_ADMIN for 'ip addr add'
 User=root
 Group=root
-# Minimal hardening (the script touches /etc and network state, can't sandbox much)
-ProtectHome=yes
+# Minimal hardening (the script touches /etc and network state, can't sandbox much).
+# Note: ProtectHome=yes cannot be used here — our scripts live under /root/cyber-berezka/
+# (systemd treats /root as a home directory), and ProtectHome=yes makes them unreadable
+# by the unit. Leaving it off until we move the repo to /opt/cyber-berezka.
 PrivateTmp=yes
 ProtectKernelTunables=yes
 ProtectControlGroups=yes
