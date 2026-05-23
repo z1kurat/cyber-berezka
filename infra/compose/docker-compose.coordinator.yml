@@ -103,7 +103,7 @@ services:
     <<: [*common, *logging]
     environment:
       - ADMIN_HOST=${ADMIN_HOST}
-      - APEX_REDIRECT_HOST=${APEX_REDIRECT_HOST:-}
+      - APEX_REDIRECT_HOST=${APEX_REDIRECT_HOST:-placeholder.invalid}
       - SITE_HOST=${SITE_HOST}
       - ADMIN_IP_WHITELIST=${ADMIN_IP_WHITELIST:-127.0.0.1}
       - ACME_EMAIL=${ACME_EMAIL}
