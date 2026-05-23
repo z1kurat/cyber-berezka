@@ -50,6 +50,11 @@ ufw --force reset >/dev/null
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp comment 'SSH'
+# Panel -> local-node :2222 — restricted to docker-bridge subnets and loopback
+# so the port stays closed to the public internet but Remnawave panel container
+# can dial out to the host-network remnanode-local.
+ufw allow from 172.16.0.0/12 to any port 2222 comment 'panel->local-node bridge'
+ufw allow from 127.0.0.1 to any port 2222 comment 'panel->local-node loopback'
 ufw allow 80/tcp comment 'HTTP (Caddy)'
 ufw allow 443/tcp comment 'HTTPS (Caddy)'
 ufw allow 2053/tcp comment 'Reality (Xray)'
