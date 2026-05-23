@@ -1,29 +1,41 @@
 #!/usr/bin/env python3
-"""Generate Xray outbounds + routing config for per-connection IPv6 rotation.
+"""Generate Xray outbounds + routing config for per-connection IPv6 rotation or IPv4-only egress.
 
-Reads IPv6 addresses from stdin (one per line, '#' starts a comment),
-emits a JSON document with:
+Modes
+-----
+ipv6-pool (default)
+    Reads IPv6 addresses from stdin (one per line, '#' starts a comment),
+    emits a JSON document with:
 
-  - one 'freedom' outbound per IPv6 (tag: v6-0000, v6-0001, ...)
-  - one IPv4 fallback outbound (tag: v4-fallback)
-  - one direct outbound and one blackhole outbound (standard hygiene)
-  - 'routing' block with a random balancer over v6 outbounds and rules
-    that send IPv4-only destinations through the fallback.
+      - one 'freedom' outbound per IPv6 (tag: v6-0000, v6-0001, ...)
+      - one IPv4 fallback outbound (tag: v4-fallback)
+      - one direct outbound and one blackhole outbound (standard hygiene)
+      - 'routing' block with a random balancer over v6 outbounds and rules
+        that send IPv4-only destinations through the fallback.
 
-Why this design:
-  The pool size is dynamic - Timeweb provides individual /128 addresses
-  that come and go through the UI. Hardcoding outbounds is brittle.
-  Random balancing across all currently-assigned IPv6 addresses spreads
-  egress fingerprints, mitigating per-IP reputation accumulation
-  (research doc, sections 7.10 and 7.13).
+    Why this design:
+      The pool size is dynamic - Timeweb provides individual /128 addresses
+      that come and go through the UI. Hardcoding outbounds is brittle.
+      Random balancing across all currently-assigned IPv6 addresses spreads
+      egress fingerprints, mitigating per-IP reputation accumulation
+      (research doc, sections 7.10 and 7.13).
+
+ipv4-only
+    For hosts with no IPv6 pool (e.g. Beget VPS 212.74.231.217). Emits a
+    minimal config with a single IPv4-forced freedom outbound (v4-direct)
+    plus the standard direct and block outbounds. Does not read stdin.
+    Routing sends all traffic (0.0.0.0/0 and ::/0) to v4-direct after
+    blocking private ranges.
 
 Usage:
   scripts/detect_ipv6_pool.sh | scripts/generate_xray_outbounds.py
   scripts/detect_ipv6_pool.sh | scripts/generate_xray_outbounds.py --merge config.json
+  scripts/generate_xray_outbounds.py --mode ipv4-only
+  scripts/generate_xray_outbounds.py --mode ipv4-only --merge config.json
 
 Exit codes:
   0 - success
-  1 - empty pool on stdin
+  1 - empty pool on stdin (ipv6-pool mode only)
   2 - invalid input (malformed IPv6 etc.)
 """
 
@@ -63,6 +75,14 @@ def make_v4_fallback() -> dict[str, Any]:
     }
 
 
+def make_v4_direct() -> dict[str, Any]:
+    return {
+        "tag": "v4-direct",
+        "protocol": "freedom",
+        "settings": {"domainStrategy": "UseIPv4"},
+    }
+
+
 def make_direct() -> dict[str, Any]:
     return {
         "tag": "direct",
@@ -97,7 +117,7 @@ def validate_pool(raw: list[str]) -> list[str]:
     return out
 
 
-def build_config(ipv6_pool: list[str]) -> dict[str, Any]:
+def build_config_ipv6_pool(ipv6_pool: list[str]) -> dict[str, Any]:
     outbounds: list[dict[str, Any]] = []
     v6_tags: list[str] = []
     for idx, addr in enumerate(ipv6_pool):
@@ -156,6 +176,20 @@ def build_config(ipv6_pool: list[str]) -> dict[str, Any]:
     return {"outbounds": outbounds, "routing": routing}
 
 
+def build_config_ipv4_only() -> dict[str, Any]:
+    return {
+        "outbounds": [make_v4_direct(), make_direct(), make_blackhole()],
+        "routing": {
+            "domainStrategy": "IPOnDemand",
+            "rules": [
+                {"type": "field", "ip": ["geoip:private"], "outboundTag": "block"},
+                {"type": "field", "ip": ["0.0.0.0/0"], "outboundTag": "v4-direct"},
+                {"type": "field", "ip": ["::/0"], "outboundTag": "v4-direct"},
+            ],
+        },
+    }
+
+
 def merge_into_config(base: dict[str, Any], generated: dict[str, Any]) -> dict[str, Any]:
     merged = dict(base)
     merged["outbounds"] = generated["outbounds"]
@@ -176,16 +210,26 @@ def main() -> int:
         default=2,
         help="JSON indent (default: 2; use 0 for single-line)",
     )
+    parser.add_argument(
+        "--mode",
+        choices=["ipv6-pool", "ipv4-only"],
+        default="ipv6-pool",
+        help="Output mode: ipv6-pool (default) reads pool from stdin; ipv4-only emits single IPv4 egress config",
+    )
     args = parser.parse_args()
 
-    raw_lines = sys.stdin.read().splitlines()
-    pool = validate_pool(raw_lines)
+    if args.mode == "ipv4-only":
+        generated = build_config_ipv4_only()
+    else:
+        # ipv6-pool mode: read stdin, validate, build
+        raw_lines = sys.stdin.read().splitlines()
+        pool = validate_pool(raw_lines)
 
-    if not pool:
-        print("ERROR: empty IPv6 pool on stdin (no addresses to balance over)", file=sys.stderr)
-        return 1
+        if not pool:
+            print("ERROR: empty IPv6 pool on stdin (no addresses to balance over)", file=sys.stderr)
+            return 1
 
-    generated = build_config(pool)
+        generated = build_config_ipv6_pool(pool)
 
     if args.merge:
         try:
