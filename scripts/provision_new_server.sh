@@ -87,7 +87,7 @@ systemctl enable --now cyber-berezka-iptables.service
 
 echo "===> [9/10] docker compose pull + up"
 cd "${REPO_BASE}/infra/compose"
-docker compose -f docker-compose.coordinator.yml --env-file "${ENV_FILE}" pull
+docker compose -f docker-compose.coordinator.yml --env-file "${ENV_FILE}" pull --ignore-buildable
 docker compose -f docker-compose.coordinator.yml --env-file "${ENV_FILE}" up -d --build
 
 echo "===> [10/10] Wait for healthcheck (max 120s)"
