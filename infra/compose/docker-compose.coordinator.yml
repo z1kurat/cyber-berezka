@@ -1,12 +1,17 @@
-# Cyber Berezka - Remnawave Panel + Caddy reverse proxy.
+# Cyber Berezka — Coordinator stack (Beget VPS).
 #
-# Source: official Remnawave production compose (remnawave/backend repo,
-# docker-compose-prod.yml) merged with the official Caddy reverse-proxy
-# template (panel repo, docs/install/reverse-proxies/caddy.md). Only the
-# minimum changes needed for our deployment have been made:
-#   - panel + Caddy combined into one file (simpler ops than two composes)
-#   - bind Caddy to host :80 and :443
-#   - all secrets/domain values driven through .env
+# Runs: Remnawave panel, Remnawave databases (Postgres + Valkey), Caddy
+# reverse-proxy, cyber-berezka site + its DB + Redis, and a local Xray node
+# (remnanode-local) that binds the host network directly.
+#
+# Relationship to docker-compose.node.yml:
+#   docker-compose.node.yml  — node-only stack for the old Timeweb VPS.
+#   This file                — coordinator stack; includes remnanode-local so
+#                              the panel can register a local node entry pointing
+#                              at 127.0.0.1:${NODE_PORT}.
+#
+# Path note: this file lives in infra/compose/, so paths relative to infra/
+# must use ../  (e.g. ../.env, ../caddy/, ../site).
 
 x-common: &common
   ulimits:
@@ -25,7 +30,7 @@ x-logging: &logging
       max-file: "5"
 
 x-env: &env
-  env_file: .env
+  env_file: ../.env
 
 services:
   remnawave:
@@ -97,16 +102,16 @@ services:
     hostname: caddy
     <<: [*common, *logging]
     environment:
-      - PANEL_DOMAIN=${PANEL_DOMAIN}
-      - SITE_DOMAIN=${SITE_DOMAIN}
-      - LANDING_DOMAIN=${LANDING_DOMAIN}
+      - ADMIN_HOST=${ADMIN_HOST}
+      - APEX_REDIRECT_HOST=${APEX_REDIRECT_HOST:-}
+      - SITE_HOST=${SITE_HOST}
       - ADMIN_IP_WHITELIST=${ADMIN_IP_WHITELIST:-127.0.0.1}
       - ACME_EMAIL=${ACME_EMAIL}
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
     volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
     depends_on:
@@ -118,7 +123,7 @@ services:
   site:
     image: cyber-berezka-site:latest
     build:
-      context: ./site
+      context: ../site
     container_name: site
     hostname: site
     <<: [*common, *logging, *env]
@@ -169,6 +174,25 @@ services:
       interval: 3s
       timeout: 3s
       retries: 3
+
+  remnanode-local:
+    image: remnawave/node:2.7.0
+    container_name: remnanode-local
+    hostname: remnanode-local
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - NODE_PORT=${NODE_PORT}
+      - SECRET_KEY=${NODE_SECRET_KEY}
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "5"
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
 
 networks:
   remnawave-network:
