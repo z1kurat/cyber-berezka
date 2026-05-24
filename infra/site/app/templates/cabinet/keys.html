@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Ключи — Cyber Berezka{% endblock %}
+{% block content %}
+<main class="max-w-4xl mx-auto px-6 py-12">
+  <header class="flex items-center justify-between mb-8">
+    <h1 class="font-serif text-3xl">Мои ключи</h1>
+    <a href="/cabinet" class="text-sm text-accent-goldDk underline">← В кабинет</a>
+  </header>
+
+  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6 mb-6">
+    <form method="POST" action="/cabinet/keys" class="flex gap-3 items-end">
+      <label class="flex-1">
+        <span class="text-sm text-text-secondary">Название ключа (опционально)</span>
+        <input type="text" name="label" maxlength="64" placeholder="Телефон, ноутбук..."
+               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
+      </label>
+      <button type="submit" class="btn-primary">+ Получить новый ключ</button>
+    </form>
+  </section>
+
+  {% if subscription_url %}
+  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6 mb-6">
+    <h2 class="font-serif text-xl mb-4">Подключение</h2>
+
+    <div class="mb-6">
+      <p class="text-sm text-text-secondary mb-3">Откройте в приложении одной кнопкой:</p>
+      <div class="flex flex-wrap gap-3">
+        <a href="v2raytun://import/{{ subscription_url | urlencode }}"
+           class="px-5 py-2 border-2 border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">v2RayTun</a>
+        <a href="hiddify://install-sub?url={{ subscription_url | urlencode }}"
+           class="px-5 py-2 border-2 border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">Hiddify</a>
+        <a href="sn://subscription?url={{ subscription_url | urlencode }}"
+           class="px-5 py-2 border-2 border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">NekoBox</a>
+      </div>
+      <p class="text-xs text-text-muted mt-3">Если приложение не установлено: <a href="#install" class="underline">инструкции</a>.</p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6 items-start">
+      <div>
+        <p class="text-sm text-text-secondary mb-2">Или вручную:</p>
+        <div class="flex gap-2 mb-3">
+          <input id="suburl" readonly value="{{ subscription_url }}"
+                 class="flex-1 border border-border-light rounded px-3 py-2 bg-white font-mono text-xs">
+          <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('suburl').value)"
+                  class="px-3 py-2 border border-border-light rounded hover:bg-bg-section-alt text-sm">Копировать</button>
+        </div>
+      </div>
+      <div class="text-center">
+        <p class="text-sm text-text-secondary mb-2">QR-код</p>
+        <img src="{{ qr_data_uri }}" alt="QR" class="inline-block w-48 h-48 border border-border-light">
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6">
+    <h2 class="font-serif text-xl mb-4">Активные ключи</h2>
+    {% if not keys %}
+      <p class="text-text-muted">У вас пока нет активных ключей. Нажмите «Получить новый ключ» выше.</p>
+    {% else %}
+      <ul class="divide-y divide-border-light">
+      {% for k in keys %}
+        <li class="py-3 flex items-center justify-between">
+          <div>
+            <div class="font-medium">{{ k.label }}</div>
+            <div class="text-xs text-text-muted">создан {{ k.created_at.strftime('%d.%m.%Y') }}</div>
+          </div>
+          <form method="POST" action="/cabinet/keys/{{ k.id }}/revoke">
+            <button class="text-sm text-cta hover:text-cta-hover underline">Отозвать</button>
+          </form>
+        </li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  </section>
+
+  <section id="install" class="mt-12 text-sm text-text-muted">
+    <h3 class="font-serif text-lg mb-3 text-text-primary">Установка приложений</h3>
+    <ul class="grid md:grid-cols-2 gap-3">
+      <li>iOS: <a href="https://apps.apple.com/app/v2raytun/id6476628951" class="underline text-accent-goldDk">v2RayTun</a></li>
+      <li>Android: <a href="https://play.google.com/store/apps/details?id=com.v2raytun.android" class="underline text-accent-goldDk">v2RayTun</a> / <a href="https://hiddify.com/install" class="underline text-accent-goldDk">Hiddify</a></li>
+      <li>Windows: <a href="https://hiddify.com/install" class="underline text-accent-goldDk">Hiddify Desktop</a></li>
+      <li>macOS: <a href="https://apps.apple.com/app/hiddify/id6596777532" class="underline text-accent-goldDk">Hiddify</a></li>
+    </ul>
+  </section>
+</main>
+{% endblock %}
