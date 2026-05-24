@@ -37,13 +37,13 @@ async def _load_nodes_context(redis: Redis) -> dict:
 @router.get("/landing", response_class=HTMLResponse, include_in_schema=False)
 async def landing(request: Request, redis: Redis = Depends(get_redis)):
     ctx = {"request": request, **(await _load_nodes_context(redis))}
-    return TEMPLATES.TemplateResponse("landing/index.html", ctx)
+    return TEMPLATES.TemplateResponse(request, "landing/index.html", ctx)
 
 
 async def render_landing(request: Request, redis: Redis):
     """Render landing — called from main.py root handler with explicit redis."""
     ctx = {"request": request, **(await _load_nodes_context(redis))}
-    return TEMPLATES.TemplateResponse("landing/index.html", ctx)
+    return TEMPLATES.TemplateResponse(request, "landing/index.html", ctx)
 
 
 async def index(request: Request):
@@ -51,4 +51,4 @@ async def index(request: Request):
 
     Returns a minimal response without nodes context.
     """
-    return TEMPLATES.TemplateResponse("landing/index.html", {"request": request, "nodes": []})
+    return TEMPLATES.TemplateResponse(request, "landing/index.html", {"request": request, "nodes": []})

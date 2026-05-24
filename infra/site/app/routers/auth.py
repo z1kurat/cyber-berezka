@@ -32,7 +32,7 @@ def _email_service() -> EmailService:
 
 @router.get("/register", response_class=HTMLResponse)
 async def register_form(request: Request):
-    return TEMPLATES.TemplateResponse("auth/register.html", {"request": request, "error": None})
+    return TEMPLATES.TemplateResponse(request, "auth/register.html", {"request": request, "error": None})
 
 
 @router.post("/register", response_class=HTMLResponse)
@@ -45,7 +45,7 @@ async def register_submit(
 ):
     if password != password_confirm:
         return TEMPLATES.TemplateResponse(
-            "auth/register.html",
+            request, "auth/register.html",
             {"request": request, "error": "Пароли не совпадают", "email": email},
             status_code=400,
         )
@@ -58,7 +58,7 @@ async def register_submit(
             "weak_password": "Пароль должен быть не короче 12 символов",
         }.get(str(e), "Ошибка регистрации")
         return TEMPLATES.TemplateResponse(
-            "auth/register.html",
+            request, "auth/register.html",
             {"request": request, "error": msg, "email": email},
             status_code=400,
         )
@@ -69,7 +69,7 @@ async def register_submit(
     except Exception:
         pass  # email failure is logged but doesn't block registration
     return TEMPLATES.TemplateResponse(
-        "auth/verify_sent.html", {"request": request, "email": user.email}
+        request, "auth/verify_sent.html", {"request": request, "email": user.email}
     )
 
 
@@ -87,7 +87,7 @@ async def verify_email(
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_form(request: Request):
-    return TEMPLATES.TemplateResponse("auth/login.html", {"request": request, "error": None})
+    return TEMPLATES.TemplateResponse(request, "auth/login.html", {"request": request, "error": None})
 
 
 @router.post("/login")
@@ -107,7 +107,7 @@ async def login_submit(
             "inactive": "Аккаунт деактивирован",
         }.get(err, "Ошибка входа")
         return TEMPLATES.TemplateResponse(
-            "auth/login.html", {"request": request, "error": msg, "email": email}, status_code=400,
+            request, "auth/login.html", {"request": request, "error": msg, "email": email}, status_code=400,
         )
     ip = request.client.host if request.client else None
     ua = request.headers.get("user-agent")

@@ -64,7 +64,7 @@ async def pending_list(
     )
     users = list(result.scalars())
     return TEMPLATES.TemplateResponse(
-        "cabinet/admin_pending.html", {"request": request, "admin": admin, "users": users},
+        request, "cabinet/admin_pending.html", {"request": request, "admin": admin, "users": users},
     )
 
 

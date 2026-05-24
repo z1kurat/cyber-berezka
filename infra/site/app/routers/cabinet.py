@@ -34,15 +34,15 @@ async def cabinet_home(
     """Render cabinet according to user state."""
     if user.is_rejected:
         return TEMPLATES.TemplateResponse(
-            "cabinet/rejected.html", {"request": request, "user": user},
+            request, "cabinet/rejected.html", {"request": request, "user": user},
         )
     if not user.is_email_verified:
         return TEMPLATES.TemplateResponse(
-            "cabinet/pending_email.html", {"request": request, "user": user},
+            request, "cabinet/pending_email.html", {"request": request, "user": user},
         )
     if not user.is_approved:
         return TEMPLATES.TemplateResponse(
-            "cabinet/pending_admin.html", {"request": request, "user": user},
+            request, "cabinet/pending_admin.html", {"request": request, "user": user},
         )
     rw = RemnawaveAPI()
     try:
@@ -53,7 +53,7 @@ async def cabinet_home(
     finally:
         await rw.aclose()
     return TEMPLATES.TemplateResponse(
-        "cabinet/index.html",
+        request, "cabinet/index.html",
         {"request": request, "user": user, "site_host": settings.site_host, "nodes": nodes},
     )
 
@@ -81,7 +81,7 @@ async def keys_page(
         await rw.aclose()
     qr = _qr_data_uri(sub_url) if sub_url else ""
     return TEMPLATES.TemplateResponse(
-        "cabinet/keys.html",
+        request, "cabinet/keys.html",
         {"request": request, "user": user, "keys": keys,
          "subscription_url": sub_url, "qr_data_uri": qr,
          "site_host": settings.site_host},
