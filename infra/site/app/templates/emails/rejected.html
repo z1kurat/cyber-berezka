@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><title>Заявка отклонена</title></head>
+<body style="font-family: Inter, system-ui, sans-serif; background: #F7F3EB; padding: 32px; color: #1A1818;">
+  <div style="max-width: 480px; margin: 0 auto; background: #FFFFFF; padding: 32px; border-radius: 8px; box-shadow: 0 8px 24px rgba(26,24,24,0.06);">
+    <h1 style="font-family: 'Cormorant Garamond', Georgia, serif; font-size: 32px; margin: 0 0 16px;">Cyber <span style="color: #B8935A;">Berezka</span></h1>
+    <p>К сожалению, ваша заявка на доступ к сервису отклонена.</p>
+    {% if reason %}
+    <p><strong>Причина:</strong> {{ reason }}</p>
+    {% endif %}
+    <p>Если вы считаете это ошибкой, ответьте на это письмо или напишите на <a href="mailto:{{ contact }}">{{ contact }}</a>.</p>
+  </div>
+</body>
+</html>
