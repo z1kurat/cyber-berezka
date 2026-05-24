@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.db import get_db
 from app.deps import get_redis, require_user
+from app.services.geo import resolve_country
 from app.services.nodes import NodesService
 from app.models.user import User
 from app.services.remnawave import RemnawaveAPI
@@ -76,6 +77,10 @@ async def keys_page(
     rw = RemnawaveAPI()
     try:
         svc = VpnKeysService(db, rw)
+        # Always derive available countries directly from panel nodes,
+        # independent of whether the user already has a Remnawave account.
+        # A first-time user without keys still needs to see the country picker.
+        nodes_for_countries = await rw.list_nodes()
         if user.remnawave_user_uuid:
             keys_rows, sub_url, servers = await svc.list_keys_with_servers(user)
         else:
@@ -83,19 +88,19 @@ async def keys_page(
     finally:
         await rw.aclose()
     qr = _qr_data_uri(sub_url) if sub_url else ""
-    # Available countries — only those with at least one currently-online node.
+    # Country dropdown — from online nodes (global, not per-user).
     seen_cc: set[str] = set()
     countries: list[dict] = []
-    for s in servers:
-        cc = (s.get("country_code") or "").upper()
-        if not cc or not s.get("is_connected"):
+    for n in nodes_for_countries:
+        if not n.get("isConnected"):
             continue
-        if cc in seen_cc:
+        cc = (n.get("countryCode") or "").upper()
+        if not cc or cc in seen_cc:
             continue
         seen_cc.add(cc)
+        country_name, city, flag = resolve_country(cc)
         countries.append({
-            "code": cc, "name": s.get("country") or cc,
-            "city": s.get("city") or "", "flag": s.get("flag") or "🌐",
+            "code": cc, "name": country_name, "city": city, "flag": flag,
         })
     # Per-server QR codes (for legacy keys' fallback rendering).
     server_qrs = {s["vless_url"]: _qr_data_uri(s["vless_url"]) for s in servers}
