@@ -49,5 +49,21 @@ class Settings(BaseSettings):
     max_keys_per_user: int = Field(default=3, alias="MAX_KEYS_PER_USER")
     password_min_length: int = Field(default=12, alias="PASSWORD_MIN_LENGTH")
 
+    # --- Added in Task 3 ---
+
+    # Cookie security (relax to False only for local dev over plain HTTP)
+    cookie_secure: bool = Field(default=True, alias="COOKIE_SECURE")
+
+    # Admin contact (used in rejection emails)
+    admin_contact_email: str = Field(
+        default="admin@cyber-berezka.ru", alias="ADMIN_CONTACT_EMAIL"
+    )
+
+    # New host names (Stage-aware via .env; defaults match Stage 1 nip.io).
+    site_host: str = Field(default="212-74-231-217.nip.io", alias="SITE_HOST")
+    admin_host: str = Field(
+        default="admin.212-74-231-217.nip.io", alias="ADMIN_HOST"
+    )
+
 
 settings = Settings()
