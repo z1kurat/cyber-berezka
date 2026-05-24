@@ -4,6 +4,7 @@ from __future__ import annotations
 COUNTRY_NAMES: dict[str, tuple[str, str, str]] = {
     "DE": ("Германия", "Frankfurt", "🇩🇪"),
     "NL": ("Нидерланды", "Amsterdam", "🇳🇱"),
+    "LV": ("Латвия", "Riga", "🇱🇻"),
     "FR": ("Франция", "Paris", "🇫🇷"),
     "FI": ("Финляндия", "Helsinki", "🇫🇮"),
     "RU": ("Россия", "Moscow", "🇷🇺"),
