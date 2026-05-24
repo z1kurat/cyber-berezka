@@ -5,7 +5,7 @@
 set -euo pipefail
 
 NEW_HOST="${NEW_HOST:-212.74.231.217}"
-OLD_HOST="${OLD_HOST:-194.87.83.31}"
+OLD_HOST="${OLD_HOST:-194.87.208.112}"
 LOCAL_BASE="$(cd "$(dirname "$0")/.." && pwd)"
 
 confirm() {
