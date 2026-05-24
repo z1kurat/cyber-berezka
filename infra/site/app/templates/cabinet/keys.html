@@ -81,7 +81,8 @@
               <a href="{{ s.vless_url }}"
                  class="text-xs px-3 py-1.5 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">NekoBox / VLESS</a>
               <button type="button"
-                      onclick="navigator.clipboard.writeText('{{ s.vless_url }}'); this.textContent='✓ скопировано';"
+                      data-vless="{{ s.vless_url }}"
+                      onclick="copyVless(this)"
                       class="text-xs px-3 py-1.5 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">Скопировать для AmneziaVPN</button>
             </div>
             <p class="text-[10px] text-text-muted mb-3">AmneziaVPN: скопируйте ссылку → откройте приложение → «+» → «Импорт настроек из текста» → вставьте.</p>
@@ -129,6 +130,38 @@
     {% endfor %}
   </section>
   {% endif %}
+
+  <script>
+    function copyVless(btn) {
+      const url = btn.getAttribute('data-vless');
+      const orig = btn.textContent;
+      const showOk = () => {
+        btn.textContent = '✓ скопировано';
+        setTimeout(() => { btn.textContent = orig; }, 2000);
+      };
+      const showErr = (e) => {
+        btn.textContent = '✗ ошибка — скопируйте URL ниже';
+        console.error('clipboard error:', e);
+        setTimeout(() => { btn.textContent = orig; }, 3000);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(showOk, showErr);
+      } else {
+        // Fallback for older browsers / non-secure contexts.
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = url;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          showOk();
+        } catch (e) { showErr(e); }
+      }
+    }
+  </script>
 
   <section id="install" class="mt-12 text-sm text-text-muted">
     <h3 class="font-serif text-lg mb-3 text-text-primary">Установка приложений</h3>
