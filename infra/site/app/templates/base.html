@@ -22,8 +22,15 @@
                 <a href="/#features" class="hover:text-text-primary transition">Возможности</a>
                 <a href="/#how-it-works" class="hover:text-text-primary transition">Как работает</a>
                 <a href="/#faq" class="hover:text-text-primary transition">Вопросы</a>
-                <a href="/auth/login" class="text-text-primary">Войти</a>
-                <a href="/auth/register" class="btn-primary !py-2 !px-5">Начать защиту</a>
+                {% if request.state.current_user %}
+                    <a href="/cabinet" class="text-text-primary">Кабинет</a>
+                    <form method="POST" action="/auth/logout" class="inline">
+                        <button class="text-text-muted hover:text-text-primary underline">Выйти</button>
+                    </form>
+                {% else %}
+                    <a href="/auth/login" class="text-text-primary">Войти</a>
+                    <a href="/auth/register" class="btn-primary !py-2 !px-5">Начать защиту</a>
+                {% endif %}
             </nav>
         </div>
     </header>

@@ -47,6 +47,31 @@ async def readyz() -> dict:
 
 
 @app.middleware("http")
+async def attach_current_user(request: Request, call_next):
+    """Resolve current user from the session cookie and stash it on request.state.
+
+    Templates (notably base.html) need to know whether someone is logged in to
+    render the right header (Cabinet/Logout vs Login/Register). DI runs only on
+    routes that declare get_current_user, but the layout extends base.html on
+    every page — including landing — so we do this once per request here.
+    """
+    request.state.current_user = None
+    sid = request.cookies.get("session")
+    if sid:
+        from sqlalchemy import select
+        from app.db import async_session_factory
+        from app.models.session import Session as SessionModel
+        from app.models.user import User
+        async with async_session_factory() as db:
+            result = await db.execute(select(SessionModel).where(SessionModel.id == sid))
+            sess = result.scalar_one_or_none()
+            if sess is not None and sess.is_valid:
+                u = await db.execute(select(User).where(User.id == sess.user_id))
+                request.state.current_user = u.scalar_one_or_none()
+    return await call_next(request)
+
+
+@app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     response.headers.setdefault(

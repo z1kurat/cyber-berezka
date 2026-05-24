@@ -114,7 +114,7 @@ async def login_submit(
     sid = await svc.create(user_id=user.id, ip=ip, ua=ua)
     resp = RedirectResponse(url="/cabinet", status_code=303)
     resp.set_cookie(
-        key="__Host-session",
+        key="session",
         value=sid,
         max_age=settings.session_lifetime_hours * 3600,
         httponly=True,
@@ -131,9 +131,9 @@ async def logout(
     svc: SessionService = Depends(get_session_service),
     user: User | None = Depends(get_current_user),
 ):
-    sid = request.cookies.get("__Host-session")
+    sid = request.cookies.get("session")
     if sid:
         await svc.revoke(sid)
     resp = RedirectResponse(url="/", status_code=303)
-    resp.delete_cookie("__Host-session", path="/")
+    resp.delete_cookie("session", path="/")
     return resp

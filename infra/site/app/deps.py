@@ -31,7 +31,7 @@ async def get_session_service(
 
 
 async def get_current_user(
-    session_id: Annotated[str | None, Cookie(alias="__Host-session")] = None,
+    session_id: Annotated[str | None, Cookie(alias="session")] = None,
     svc: SessionService = Depends(get_session_service),
     db: AsyncSession = Depends(get_db),
 ) -> User | None:
