@@ -28,8 +28,9 @@ asyncio.run(wait())
 PY
 
 echo "[entrypoint] Running alembic upgrade head..."
-APP_DB_URL_SYNC="$(python -c "import os; u=os.environ['APP_DB_URL']; print(u.replace('postgresql+asyncpg://','postgresql://',1))")"
-APP_DB_URL="$APP_DB_URL_SYNC" alembic -c /app/alembic.ini upgrade head
+# Pass the original asyncpg URL — migrations/env.py uses async_engine_from_config
+# (Task 1) which expects postgresql+asyncpg://, not the sync psycopg2 URL.
+alembic -c /app/alembic.ini upgrade head
 
 echo "[entrypoint] Starting uvicorn..."
 exec "$@"
