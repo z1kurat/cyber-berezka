@@ -9,7 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.config import settings
-from app.routers import landing, legal
+from app.routers import auth, landing, legal
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
@@ -80,6 +80,7 @@ async def root(request: Request):
     )
 
 
+app.include_router(auth.router)
 app.include_router(landing.router)
 app.include_router(legal.router)
 

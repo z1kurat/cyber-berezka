@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — Cyber Berezka{% endblock %}
+{% block content %}
+<main class="max-w-md mx-auto px-6 py-16">
+  <div class="bg-bg-card border border-border-light rounded-lg shadow-card p-8">
+    <h1 class="font-serif text-3xl mb-6">Создать аккаунт</h1>
+    {% if error %}<p class="text-cta mb-4 text-sm">{{ error }}</p>{% endif %}
+    <form method="POST" action="/auth/register" class="space-y-4">
+      <label class="block">
+        <span class="text-sm text-text-secondary">Email</span>
+        <input type="email" name="email" required value="{{ email or '' }}"
+               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
+      </label>
+      <label class="block">
+        <span class="text-sm text-text-secondary">Пароль (минимум 12 символов)</span>
+        <input type="password" name="password" required minlength="12"
+               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
+      </label>
+      <label class="block">
+        <span class="text-sm text-text-secondary">Повтор пароля</span>
+        <input type="password" name="password_confirm" required minlength="12"
+               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
+      </label>
+      <label class="flex items-start gap-2 text-sm">
+        <input type="checkbox" required class="mt-1">
+        <span>Я принимаю <a href="/legal/terms" class="underline text-accent-goldDk">Условия использования</a> и <a href="/legal/privacy" class="underline text-accent-goldDk">Политику конфиденциальности</a></span>
+      </label>
+      <button type="submit" class="btn-primary w-full">Создать аккаунт</button>
+    </form>
+    <p class="mt-6 text-sm text-text-muted">Уже есть аккаунт? <a href="/auth/login" class="text-accent-goldDk underline">Войти</a></p>
+  </div>
+</main>
+{% endblock %}

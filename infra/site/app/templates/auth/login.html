@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Вход — Cyber Berezka{% endblock %}
+{% block content %}
+<main class="max-w-md mx-auto px-6 py-16">
+  <div class="bg-bg-card border border-border-light rounded-lg shadow-card p-8">
+    <h1 class="font-serif text-3xl mb-6">Войти</h1>
+    {% if request.query_params.get('verified') %}
+      <p class="text-success mb-4 text-sm">Email подтверждён, теперь можно войти.</p>
+    {% endif %}
+    {% if error %}<p class="text-cta mb-4 text-sm">{{ error }}</p>{% endif %}
+    <form method="POST" action="/auth/login" class="space-y-4">
+      <label class="block">
+        <span class="text-sm text-text-secondary">Email</span>
+        <input type="email" name="email" required value="{{ email or '' }}"
+               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
+      </label>
+      <label class="block">
+        <span class="text-sm text-text-secondary">Пароль</span>
+        <input type="password" name="password" required
+               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
+      </label>
+      <button type="submit" class="btn-primary w-full">Войти</button>
+    </form>
+    <p class="mt-6 text-sm text-text-muted">Нет аккаунта? <a href="/auth/register" class="text-accent-goldDk underline">Зарегистрироваться</a></p>
+  </div>
+</main>
+{% endblock %}
