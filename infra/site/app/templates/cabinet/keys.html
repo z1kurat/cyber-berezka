@@ -18,38 +18,76 @@
     </form>
   </section>
 
-  {% if subscription_url %}
-  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6 mb-6">
-    <h2 class="font-serif text-xl mb-4">Подключение</h2>
+  {% if servers %}
+  <section class="mb-6">
+    <h2 class="font-serif text-xl mb-4">Выберите сервер для подключения</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      {% for s in servers %}
+      <div class="bg-bg-card border border-border-light rounded-lg shadow-card p-5">
+        <header class="mb-3">
+          <div class="text-lg font-medium">{{ s.flag }} {{ s.country or s.remark }}</div>
+          <div class="text-xs text-text-muted">{% if s.city %}{{ s.city }} · {% endif %}{{ s.address }}:{{ s.port }}</div>
+        </header>
 
-    <div class="mb-6">
-      <p class="text-sm text-text-secondary mb-3">Откройте в приложении одной кнопкой:</p>
-      <div class="flex flex-wrap gap-3">
-        <a href="v2raytun://import/{{ subscription_url | urlencode }}"
-           class="px-5 py-2 border-2 border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">v2RayTun</a>
-        <a href="hiddify://install-sub?url={{ subscription_url | urlencode }}"
-           class="px-5 py-2 border-2 border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">Hiddify</a>
-        <a href="sn://subscription?url={{ subscription_url | urlencode }}"
-           class="px-5 py-2 border-2 border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">NekoBox</a>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <a href="v2raytun://import/{{ s.vless_url | urlencode }}"
+             class="text-xs px-3 py-1.5 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">v2RayTun</a>
+          <a href="hiddify://import-config?content={{ s.vless_url | urlencode }}"
+             class="text-xs px-3 py-1.5 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">Hiddify</a>
+          <a href="{{ s.vless_url }}"
+             class="text-xs px-3 py-1.5 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">NekoBox / VLESS</a>
+        </div>
+
+        <details class="text-xs">
+          <summary class="cursor-pointer text-text-secondary">Скопировать вручную / QR</summary>
+          <div class="mt-3 grid grid-cols-2 gap-3 items-start">
+            <div>
+              <div class="flex gap-2">
+                <input readonly value="{{ s.vless_url }}"
+                       id="vurl-{{ loop.index }}"
+                       class="flex-1 border border-border-light rounded px-2 py-1 bg-white font-mono text-[10px]">
+                <button type="button"
+                        onclick="navigator.clipboard.writeText(document.getElementById('vurl-{{ loop.index }}').value)"
+                        class="px-2 py-1 border border-border-light rounded hover:bg-bg-section-alt text-xs">copy</button>
+              </div>
+            </div>
+            <div class="text-center">
+              <img src="{{ server_qrs[s.vless_url] }}" alt="QR" class="inline-block w-32 h-32 border border-border-light">
+            </div>
+          </div>
+        </details>
       </div>
-      <p class="text-xs text-text-muted mt-3">Если приложение не установлено: <a href="#install" class="underline">инструкции</a>.</p>
+      {% endfor %}
     </div>
+  </section>
+  {% endif %}
 
-    <div class="grid md:grid-cols-2 gap-6 items-start">
-      <div>
-        <p class="text-sm text-text-secondary mb-2">Или вручную:</p>
-        <div class="flex gap-2 mb-3">
+  {% if subscription_url %}
+  <section class="bg-bg-section-alt border border-border-light rounded-lg p-5 mb-6">
+    <h2 class="font-serif text-lg mb-3">Импортировать все серверы одной подпиской</h2>
+    <p class="text-sm text-text-muted mb-3">Один URL — все серверы сразу, клиент сам балансирует или выбирает.</p>
+    <div class="flex flex-wrap gap-3 mb-4">
+      <a href="v2raytun://import/{{ subscription_url | urlencode }}"
+         class="px-4 py-2 border-2 border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition text-sm">v2RayTun</a>
+      <a href="hiddify://install-sub?url={{ subscription_url | urlencode }}"
+         class="px-4 py-2 border-2 border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition text-sm">Hiddify</a>
+      <a href="sn://subscription?url={{ subscription_url | urlencode }}"
+         class="px-4 py-2 border-2 border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition text-sm">NekoBox</a>
+    </div>
+    <details class="text-xs">
+      <summary class="cursor-pointer text-text-secondary">Скопировать URL подписки / QR</summary>
+      <div class="mt-3 grid md:grid-cols-2 gap-3 items-start">
+        <div class="flex gap-2">
           <input id="suburl" readonly value="{{ subscription_url }}"
-                 class="flex-1 border border-border-light rounded px-3 py-2 bg-white font-mono text-xs">
+                 class="flex-1 border border-border-light rounded px-2 py-1 bg-white font-mono text-[10px]">
           <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('suburl').value)"
-                  class="px-3 py-2 border border-border-light rounded hover:bg-bg-section-alt text-sm">Копировать</button>
+                  class="px-2 py-1 border border-border-light rounded hover:bg-bg-section-alt text-xs">copy</button>
+        </div>
+        <div class="text-center">
+          <img src="{{ qr_data_uri }}" alt="QR" class="inline-block w-32 h-32 border border-border-light">
         </div>
       </div>
-      <div class="text-center">
-        <p class="text-sm text-text-secondary mb-2">QR-код</p>
-        <img src="{{ qr_data_uri }}" alt="QR" class="inline-block w-48 h-48 border border-border-light">
-      </div>
-    </div>
+    </details>
   </section>
   {% endif %}
 

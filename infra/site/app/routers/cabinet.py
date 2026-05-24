@@ -77,13 +77,17 @@ async def keys_page(
     try:
         svc = VpnKeysService(db, rw)
         keys, sub_url = await svc.list_keys_with_url(user)
+        servers = await svc.list_servers_for_user(user) if sub_url else []
     finally:
         await rw.aclose()
     qr = _qr_data_uri(sub_url) if sub_url else ""
+    # Per-server QR codes (data URIs) — same vless line.
+    server_qrs = {s["vless_url"]: _qr_data_uri(s["vless_url"]) for s in servers}
     return TEMPLATES.TemplateResponse(
         request, "cabinet/keys.html",
         {"request": request, "user": user, "keys": keys,
          "subscription_url": sub_url, "qr_data_uri": qr,
+         "servers": servers, "server_qrs": server_qrs,
          "site_host": settings.site_host},
     )
 
