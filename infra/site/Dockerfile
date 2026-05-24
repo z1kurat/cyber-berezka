@@ -39,7 +39,10 @@ RUN pip install --no-cache-dir \
 
 # App source.
 COPY app/ ./app/
-# migrations/ and alembic.ini are added in a later iteration when DB schema lands.
+COPY alembic.ini ./alembic.ini
+COPY migrations/ ./migrations/
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 # Tailwind output from builder stage.
 COPY --from=tw-builder /work/app/static/css/styles.css ./app/static/css/styles.css
@@ -53,4 +56,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)" || exit 1
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
