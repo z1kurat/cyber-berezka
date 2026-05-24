@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Pending users — Cyber Berezka{% endblock %}
+{% block content %}
+<main class="max-w-4xl mx-auto px-6 py-12">
+  <header class="flex items-center justify-between mb-8">
+    <h1 class="font-serif text-3xl">Pending users</h1>
+    <a href="/cabinet" class="text-sm text-accent-goldDk underline">← В кабинет</a>
+  </header>
+
+  {% if not users %}
+    <p class="text-text-muted">Сейчас нет пользователей, ожидающих одобрения.</p>
+  {% else %}
+    <ul class="space-y-4">
+    {% for u in users %}
+      <li class="bg-bg-card border border-border-light rounded-lg shadow-card p-5">
+        <div class="font-medium">{{ u.email }}</div>
+        <div class="text-xs text-text-muted">Регистрация: {{ u.created_at.strftime('%d.%m.%Y %H:%M') }} · Email подтверждён: {{ u.email_verified_at.strftime('%d.%m.%Y %H:%M') }}{% if u.last_login_ip %} · IP: {{ u.last_login_ip }}{% endif %}</div>
+        <div class="mt-4 flex gap-3 items-end">
+          <form method="POST" action="/cabinet/admin/pending/{{ u.id }}/approve">
+            <button class="btn-primary">Approve</button>
+          </form>
+          <form method="POST" action="/cabinet/admin/pending/{{ u.id }}/reject" class="flex gap-2 items-end">
+            <input type="text" name="reason" maxlength="500" placeholder="Причина (опц.)"
+                   class="border border-border-light rounded px-3 py-2 bg-white text-sm">
+            <button class="px-4 py-2 border border-cta text-cta rounded hover:bg-cta hover:text-white transition">Reject</button>
+          </form>
+        </div>
+      </li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+</main>
+{% endblock %}
