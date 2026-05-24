@@ -3,13 +3,16 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from redis.asyncio import Redis
 
 from app.config import settings
+from app.deps import get_redis
 from app.routers import auth, cabinet, landing, legal
+from app.routers.landing import render_landing
 
 BASE_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = BASE_DIR / "templates"
@@ -63,7 +66,7 @@ async def add_security_headers(request: Request, call_next):
 
 
 @app.get("/", response_class=HTMLResponse, include_in_schema=False)
-async def root(request: Request):
+async def root(request: Request, redis: Redis = Depends(get_redis)):
     """Serve landing on the canonical site host; redirect from any other host.
 
     `landing_domain` in .env is set to the same value as SITE_HOST during
@@ -74,7 +77,7 @@ async def root(request: Request):
     """
     host = request.headers.get("host", "")
     if host.startswith("home.") or host == settings.landing_domain:
-        return await landing.index(request)
+        return await render_landing(request, redis)
     return RedirectResponse(
         url=f"https://{settings.landing_domain}/", status_code=302
     )

@@ -1,0 +1,21 @@
+{% if nodes %}
+<section class="bg-bg-section-alt py-16">
+  <div class="max-w-4xl mx-auto px-6">
+    <h2 class="font-serif text-3xl mb-6">Наши серверы</h2>
+    <p class="text-text-secondary mb-6">{{ nodes_online_count }} сервера онлайн в {{ nodes_countries_count }} стран{{ 'е' if nodes_countries_count == 1 else 'ах' }}.</p>
+    <ul class="grid md:grid-cols-2 gap-3">
+      {% for n in nodes %}
+      <li class="flex items-center justify-between bg-bg-card border border-border-light rounded px-4 py-3">
+        <span>{{ n.flag }} {{ n.country }}{% if n.city %} <span class="text-text-muted">({{ n.city }})</span>{% endif %}</span>
+        {% if n.is_connected %}
+          <span class="text-success">● онлайн</span>
+        {% else %}
+          <span class="text-text-muted">● тех. работы</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="text-xs text-text-muted mt-4">Подключение распределяется автоматически — чем больше серверов, тем устойчивее канал.</p>
+  </div>
+</section>
+{% endif %}

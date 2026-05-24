@@ -13,7 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db import get_db
-from app.deps import require_user
+from app.deps import get_redis, require_user
+from app.services.nodes import NodesService
 from app.models.user import User
 from app.services.remnawave import RemnawaveAPI
 from app.services.vpn_keys import VpnKeysService
@@ -25,7 +26,11 @@ TEMPLATES = Jinja2Templates(directory=Path(__file__).resolve().parent.parent / "
 
 @router.get("", response_class=HTMLResponse)
 @router.get("/", response_class=HTMLResponse)
-async def cabinet_home(request: Request, user: User = Depends(require_user)):
+async def cabinet_home(
+    request: Request,
+    user: User = Depends(require_user),
+    redis=Depends(get_redis),
+):
     """Render cabinet according to user state."""
     if user.is_rejected:
         return TEMPLATES.TemplateResponse(
@@ -39,9 +44,17 @@ async def cabinet_home(request: Request, user: User = Depends(require_user)):
         return TEMPLATES.TemplateResponse(
             "cabinet/pending_admin.html", {"request": request, "user": user},
         )
+    rw = RemnawaveAPI()
+    try:
+        nsvc = NodesService(api=rw, redis=redis)
+        nodes = await nsvc.get_nodes()
+    except Exception:
+        nodes = []
+    finally:
+        await rw.aclose()
     return TEMPLATES.TemplateResponse(
         "cabinet/index.html",
-        {"request": request, "user": user, "site_host": settings.site_host},
+        {"request": request, "user": user, "site_host": settings.site_host, "nodes": nodes},
     )
 
 

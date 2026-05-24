@@ -1,67 +1,54 @@
-"""Landing page — public marketing surface."""
+"""Landing routes."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from redis.asyncio import Redis
+
+from app.deps import get_redis
+from app.services.nodes import NodesService
+from app.services.remnawave import RemnawaveAPI
 
 router = APIRouter()
 
+TEMPLATES = Jinja2Templates(directory=Path(__file__).resolve().parent.parent / "templates")
+
+
+async def _load_nodes_context(redis: Redis) -> dict:
+    rw = RemnawaveAPI()
+    try:
+        svc = NodesService(api=rw, redis=redis)
+        nodes = await svc.get_nodes()
+    except Exception:
+        nodes = []
+    finally:
+        await rw.aclose()
+    countries = {n["country"] for n in nodes if n["is_connected"]}
+    return {
+        "nodes": nodes,
+        "nodes_online_count": sum(1 for n in nodes if n["is_connected"]),
+        "nodes_countries_count": len(countries),
+    }
+
 
 @router.get("/landing", response_class=HTMLResponse, include_in_schema=False)
+async def landing(request: Request, redis: Redis = Depends(get_redis)):
+    ctx = {"request": request, **(await _load_nodes_context(redis))}
+    return TEMPLATES.TemplateResponse("landing/index.html", ctx)
+
+
+async def render_landing(request: Request, redis: Redis):
+    """Render landing — called from main.py root handler with explicit redis."""
+    ctx = {"request": request, **(await _load_nodes_context(redis))}
+    return TEMPLATES.TemplateResponse("landing/index.html", ctx)
+
+
 async def index(request: Request):
-    templates = request.app.state.templates
-    return templates.TemplateResponse(
-        request,
-        "landing/index.html",
-        context={
-            "features": [
-                {
-                    "icon": "☕",
-                    "title": "Защита в публичных Wi-Fi",
-                    "text": "Кафе, аэропорты, отели — шифруем ваше соединение от перехвата.",
-                },
-                {
-                    "icon": "💳",
-                    "title": "Безопасные онлайн-платежи",
-                    "text": "Банковские операции под защитой современного шифрования.",
-                },
-                {
-                    "icon": "🔒",
-                    "title": "Приватность данных",
-                    "text": "Ваши персональные данные не становятся товаром.",
-                },
-                {
-                    "icon": "🌐",
-                    "title": "Стабильное соединение",
-                    "text": "Шифрование без потери скорости — современный протокол.",
-                },
-            ],
-            "tech_facts": [
-                {"big": "256-bit", "text": "Шифрование военного уровня (ChaCha20-Poly1305)"},
-                {"big": "Reality", "text": "Современный протокол (Project XTLS)"},
-                {"big": "NL", "text": "Сервера в Нидерландах — за пределами юрисдикции РФ"},
-                {"big": "0", "text": "Логов персонального трафика"},
-            ],
-            "faq": [
-                {
-                    "q": "Это легально?",
-                    "a": "Да. Сервис обеспечивает шифрование трафика. Использование подобных "
-                         "решений для защиты персональных данных законом не ограничивается.",
-                },
-                {
-                    "q": "Что вы сохраняете обо мне?",
-                    "a": "Только email и факт регистрации. Содержимое и адресаты вашего "
-                         "трафика мы не пишем — это архитектурный факт.",
-                },
-                {
-                    "q": "Какие приложения поддерживаются?",
-                    "a": "v2RayTun (iOS / Android), Hiddify (все платформы), NekoBox (Android). "
-                         "Эти клиенты проверены — другие не гарантируем.",
-                },
-                {
-                    "q": "Сколько устройств можно подключить?",
-                    "a": "На стадии тестирования — до трёх устройств на одну подписку.",
-                },
-            ],
-        },
-    )
+    """Backward-compat shim used from main.py's root handler when redis is not available.
+
+    Returns a minimal response without nodes context.
+    """
+    return TEMPLATES.TemplateResponse("landing/index.html", {"request": request, "nodes": []})

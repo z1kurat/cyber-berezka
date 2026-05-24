@@ -1,0 +1,17 @@
+{% if nodes %}
+<ul class="divide-y divide-border-light">
+  {% for n in nodes %}
+  <li class="flex items-center justify-between py-2">
+    <span>{{ n.flag }} {{ n.country }}{% if n.city %} ({{ n.city }}){% endif %}</span>
+    {% if n.is_connected %}
+      <span class="text-success">● онлайн</span>
+    {% else %}
+      <span class="text-text-muted">● технические работы</span>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+<p class="text-xs text-text-muted mt-3">Подключения распределяются автоматически между серверами.</p>
+{% else %}
+<p class="text-text-muted">Список серверов сейчас недоступен.</p>
+{% endif %}
