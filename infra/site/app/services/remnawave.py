@@ -52,6 +52,13 @@ class RemnawaveAPI:
     async def list_nodes(self) -> list[dict]:
         return await self._call("GET", "/api/nodes") or []
 
+    async def list_squads(self) -> list[dict]:
+        """Return all internal squads. Used to find a default squad to assign new users."""
+        data = await self._call("GET", "/api/internal-squads")
+        if isinstance(data, dict):
+            return data.get("internalSquads", []) or []
+        return data or []
+
     async def create_user(self, username: str, expire_at: str | None = None) -> dict:
         payload = {"username": username}
         if expire_at:
@@ -61,8 +68,13 @@ class RemnawaveAPI:
     async def get_user(self, user_uuid: str) -> dict:
         return await self._call("GET", f"/api/users/{user_uuid}")
 
+    async def update_user(self, user_uuid: str, **fields) -> dict:
+        """PATCH /api/users — merge fields into existing user."""
+        payload = {"uuid": user_uuid, **fields}
+        return await self._call("PATCH", "/api/users", json=payload)
+
     async def revoke_user(self, user_uuid: str) -> None:
-        await self._call("PATCH", f"/api/users/{user_uuid}", json={"status": "DISABLED"})
+        await self.update_user(user_uuid, status="DISABLED")
 
     async def aclose(self) -> None:
         await self.client.aclose()

@@ -22,16 +22,31 @@ class VpnKeysService:
         self.remnawave = remnawave
 
     async def ensure_remnawave_user(self, user: User) -> None:
-        """Create the Remnawave user once, store UUID/short_uuid in local row."""
+        """Create the Remnawave user once, store UUID/short_uuid in local row.
+
+        Also attach the new user to the first available squad — otherwise the
+        subscription URL falls back to placeholder hosts (0.0.0.0:1 / "No hosts
+        found") and the client cannot connect.
+        """
         if user.remnawave_user_uuid:
             return
         far_future = "2099-12-31T00:00:00Z"
+        # Pick a default squad before creating the user so we can bind in one go.
+        squads = await self.remnawave.list_squads()
+        default_squad_uuid = squads[0]["uuid"] if squads else None
+
         rw_user = await self.remnawave.create_user(
             username=f"user_{user.id}", expire_at=far_future,
         )
         user.remnawave_user_uuid = rw_user.get("uuid")
         user.remnawave_short_uuid = rw_user.get("shortUuid")
         await self.db.commit()
+
+        if default_squad_uuid and user.remnawave_user_uuid:
+            await self.remnawave.update_user(
+                user.remnawave_user_uuid,
+                activeInternalSquads=[default_squad_uuid],
+            )
 
     async def create_key(self, user: User, label: str | None) -> tuple[VpnKey, str]:
         """Create a VpnKey row, return (key, subscription_url)."""
