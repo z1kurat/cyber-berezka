@@ -95,16 +95,19 @@ async def keys_page(
 @router.post("/keys")
 async def keys_create(
     request: Request,
-    label: str = Form(""),
+    label: str = Form(..., min_length=1, max_length=64),
     user: User = Depends(require_user),
     db: AsyncSession = Depends(get_db),
 ):
     if not user.is_approved:
         return RedirectResponse(url="/cabinet", status_code=303)
+    label = label.strip()
+    if not label:
+        return RedirectResponse(url="/cabinet/keys?error=label_required", status_code=303)
     rw = RemnawaveAPI()
     try:
         svc = VpnKeysService(db, rw)
-        await svc.create_key(user, label=label or None)
+        await svc.create_key(user, label=label)
     finally:
         await rw.aclose()
     return RedirectResponse(url="/cabinet/keys", status_code=303)

@@ -6,7 +6,10 @@
     <h1 class="font-serif text-3xl">Кабинет</h1>
     <div class="flex items-center gap-4 text-sm">
       <span class="text-text-muted">{{ user.email }}</span>
-      {% if user.is_admin %}<a href="/cabinet/admin/pending" class="text-accent-goldDk underline">Pending users</a>{% endif %}
+      {% if user.is_admin %}
+        <a href="/cabinet/admin/pending" class="text-accent-goldDk underline">Pending users</a>
+        <a href="/cabinet/admin/keys" class="text-accent-goldDk underline">Все ключи</a>
+      {% endif %}
       <form method="POST" action="/auth/logout" class="inline">
         <button class="text-text-muted underline">Выйти</button>
       </form>

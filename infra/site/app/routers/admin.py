@@ -15,6 +15,7 @@ from app.db import get_db
 from app.deps import require_admin
 from app.models.audit_log import AuditLog
 from app.models.user import User
+from app.models.vpn_key import VpnKey
 from app.services.email import EmailService
 
 router = APIRouter(prefix="/cabinet/admin", tags=["admin"])
@@ -107,3 +108,26 @@ async def reject_user(
     except Exception:
         pass
     return RedirectResponse(url="/cabinet/admin/pending", status_code=303)
+
+
+@router.get("/keys", response_class=HTMLResponse)
+async def keys_list(
+    request: Request,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """All issued VPN keys with their owners — admin overview."""
+    result = await db.execute(
+        select(VpnKey, User)
+        .join(User, User.id == VpnKey.user_id)
+        .order_by(VpnKey.id.desc())
+    )
+    rows = [{"key": k, "user": u} for k, u in result.all()]
+    by_status: dict[str, int] = {}
+    for r in rows:
+        by_status[r["key"].status] = by_status.get(r["key"].status, 0) + 1
+    return TEMPLATES.TemplateResponse(
+        request,
+        "cabinet/admin_keys.html",
+        {"request": request, "admin": admin, "rows": rows, "by_status": by_status},
+    )

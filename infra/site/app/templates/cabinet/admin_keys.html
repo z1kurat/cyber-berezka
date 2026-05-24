@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Все ключи — Cyber Berezka{% endblock %}
+{% block content %}
+<main class="max-w-5xl mx-auto px-6 py-12">
+  <header class="flex items-center justify-between mb-8">
+    <h1 class="font-serif text-3xl">Все ключи</h1>
+    <nav class="flex gap-4 text-sm">
+      <a href="/cabinet/admin/pending" class="text-accent-goldDk underline">Pending users</a>
+      <a href="/cabinet" class="text-accent-goldDk underline">← В кабинет</a>
+    </nav>
+  </header>
+
+  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-5 mb-6">
+    <div class="flex gap-6 text-sm">
+      <div><span class="text-text-muted">Всего:</span> <span class="font-medium">{{ rows | length }}</span></div>
+      {% for status, count in by_status.items() %}
+      <div><span class="text-text-muted">{{ status }}:</span> <span class="font-medium">{{ count }}</span></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if not rows %}
+    <p class="text-text-muted">Ни один ключ ещё не выпущен.</p>
+  {% else %}
+    <section class="bg-bg-card border border-border-light rounded-lg shadow-card overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-bg-section-alt">
+          <tr class="text-left">
+            <th class="px-4 py-3">ID</th>
+            <th class="px-4 py-3">Пользователь</th>
+            <th class="px-4 py-3">Название ключа</th>
+            <th class="px-4 py-3">Статус</th>
+            <th class="px-4 py-3">Создан</th>
+            <th class="px-4 py-3">Remnawave UUID</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in rows %}
+          <tr class="border-t border-border-light hover:bg-bg-section-alt">
+            <td class="px-4 py-2 font-mono text-xs">{{ r.key.id }}</td>
+            <td class="px-4 py-2">
+              <div>{{ r.user.email }}</div>
+              <div class="text-xs text-text-muted">user_id={{ r.user.id }}{% if r.user.is_admin %} · admin{% endif %}</div>
+            </td>
+            <td class="px-4 py-2">{{ r.key.label or '—' }}</td>
+            <td class="px-4 py-2">
+              {% if r.key.status == 'active' %}<span class="text-success">● active</span>
+              {% elif r.key.status == 'revoked' %}<span class="text-text-muted">● revoked</span>
+              {% else %}<span>{{ r.key.status }}</span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-2 text-xs text-text-muted">{{ r.key.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td class="px-4 py-2 font-mono text-[10px] text-text-muted">{{ r.user.remnawave_short_uuid or '—' }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endif %}
+</main>
+{% endblock %}
