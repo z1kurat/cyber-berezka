@@ -3,19 +3,19 @@
 from datetime import datetime
 from typing import Any, Optional
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Text, func
-from sqlalchemy.dialects.postgresql import INET, JSONB
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
+from app.models.compat_types import BigInt, INET, JSONB
 
 
 class AuditLog(Base):
     __tablename__ = "audit_log"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInt, primary_key=True)
     user_id: Mapped[Optional[int]] = mapped_column(
-        BigInteger, ForeignKey("users.id", ondelete="SET NULL"), index=True,
+        BigInt, ForeignKey("users.id", ondelete="SET NULL"), index=True,
     )
     event_type: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
     event_data: Mapped[dict[str, Any]] = mapped_column(JSONB, default=dict, nullable=False)

@@ -3,17 +3,17 @@
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import INET, UUID
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin
+from app.models.compat_types import BigInt, INET, UUID
 
 
 class User(Base, TimestampMixin):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInt, primary_key=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     email_normalized: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -24,9 +24,9 @@ class User(Base, TimestampMixin):
     password_reset_expires: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
     admin_approved_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
-    admin_approved_by: Mapped[Optional[int]] = mapped_column(BigInteger, ForeignKey("users.id"))
+    admin_approved_by: Mapped[Optional[int]] = mapped_column(BigInt, ForeignKey("users.id"))
     admin_rejected_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
-    admin_rejected_by: Mapped[Optional[int]] = mapped_column(BigInteger, ForeignKey("users.id"))
+    admin_rejected_by: Mapped[Optional[int]] = mapped_column(BigInt, ForeignKey("users.id"))
     rejection_reason: Mapped[Optional[str]] = mapped_column(Text)
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

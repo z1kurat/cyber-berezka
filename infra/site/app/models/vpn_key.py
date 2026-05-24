@@ -3,19 +3,19 @@
 from datetime import datetime
 from typing import Any, Optional
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, String, func
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
+from app.models.compat_types import BigInt, JSONB
 
 
 class VpnKey(Base):
     __tablename__ = "vpn_keys"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInt, primary_key=True)
     user_id: Mapped[int] = mapped_column(
-        BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True,
+        BigInt, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True,
     )
     label: Mapped[Optional[str]] = mapped_column(String(64))
     status: Mapped[str] = mapped_column(String(16), default="active", nullable=False)
