@@ -132,7 +132,7 @@ services:
       - LANDING_DOMAIN=${LANDING_DOMAIN}
       - APP_DB_URL=postgresql+asyncpg://${APP_DB_USER:-app}:${APP_DB_PASSWORD}@db-app:5432/${APP_DB_NAME:-cyber_berezka}
       - SITE_REDIS_URL=redis://site-redis:6379/0
-      - REMNAWAVE_API_URL=http://remnawave:3000
+      - REMNAWAVE_API_URL=${REMNAWAVE_API_URL:-http://remnawave:3000}
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)\""]
       interval: 30s
