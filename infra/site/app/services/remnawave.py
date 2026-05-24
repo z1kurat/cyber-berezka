@@ -24,9 +24,21 @@ class RemnawaveAPI:
     def __init__(self, client: httpx.AsyncClient | None = None):
         self.base = settings.remnawave_api_url.rstrip("/")
         self.token = settings.remnawave_api_token
+        # Remnawave 2.7 closes the connection when Origin/Host don't match its
+        # configured FRONT_END_DOMAIN. When we talk to it through the internal
+        # docker DNS (http://remnawave:3000), the default Host header would be
+        # 'remnawave' — the panel rejects that. Forge Caddy-style proxy headers
+        # so the panel sees the request as if it came through the public host.
         self.client = client or httpx.AsyncClient(
             timeout=15.0,
-            headers={"Authorization": f"Bearer {self.token}", "User-Agent": "cyber-berezka-site/0.1"},
+            headers={
+                "Authorization": f"Bearer {self.token}",
+                "User-Agent": "cyber-berezka-site/0.1",
+                "Host": settings.admin_host,
+                "X-Forwarded-Proto": "https",
+                "X-Forwarded-Host": settings.admin_host,
+                "Origin": f"https://{settings.admin_host}",
+            },
         )
 
     async def _call(self, method: str, path: str, **kwargs) -> Any:
