@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Доступ отклонён — Cyber Berezka{% endblock %}
+{% block content %}
+<main class="max-w-2xl mx-auto px-6 py-16">
+  <div class="bg-bg-card border border-border-light rounded-lg shadow-card p-8">
+    <h1 class="font-serif text-3xl mb-4">Доступ отклонён</h1>
+    <p>К сожалению, ваша заявка отклонена администратором.</p>
+    {% if user.rejection_reason %}
+      <p class="mt-4"><strong>Причина:</strong> {{ user.rejection_reason }}</p>
+    {% endif %}
+    <form method="POST" action="/auth/logout" class="mt-8">
+      <button class="text-sm text-text-muted underline">Выйти</button>
+    </form>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Кабинет — Cyber Berezka{% endblock %}
+{% block content %}
+<main class="max-w-4xl mx-auto px-6 py-12">
+  <header class="flex items-center justify-between mb-8">
+    <h1 class="font-serif text-3xl">Кабинет</h1>
+    <div class="flex items-center gap-4 text-sm">
+      <span class="text-text-muted">{{ user.email }}</span>
+      {% if user.is_admin %}<a href="/cabinet/admin/pending" class="text-accent-goldDk underline">Pending users</a>{% endif %}
+      <form method="POST" action="/auth/logout" class="inline">
+        <button class="text-text-muted underline">Выйти</button>
+      </form>
+    </div>
+  </header>
+
+  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6 mb-6">
+    <h2 class="font-serif text-xl mb-4">Доступные серверы</h2>
+    {% include "cabinet/_server_list.html" ignore missing %}
+  </section>
+
+  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6">
+    <h2 class="font-serif text-xl mb-4">Ключи</h2>
+    <a href="/cabinet/keys" class="btn-primary inline-block">Управление ключами →</a>
+  </section>
+</main>
+{% endblock %}

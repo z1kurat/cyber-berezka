@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Заявка на рассмотрении — Cyber Berezka{% endblock %}
+{% block content %}
+<main class="max-w-2xl mx-auto px-6 py-16">
+  <div class="bg-bg-card border border-border-light rounded-lg shadow-card p-8">
+    <h1 class="font-serif text-3xl mb-4">Заявка на рассмотрении</h1>
+    <p>Спасибо за регистрацию. Ваша заявка передана администратору.</p>
+    <p class="mt-4">Мы сообщим на <strong>{{ user.email }}</strong>, как только выдадим доступ. Обычно это занимает не более суток.</p>
+    <form method="POST" action="/auth/logout" class="mt-8">
+      <button class="text-sm text-text-muted underline">Выйти</button>
+    </form>
+  </div>
+</main>
+{% endblock %}
