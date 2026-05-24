@@ -76,18 +76,39 @@ async def keys_page(
     rw = RemnawaveAPI()
     try:
         svc = VpnKeysService(db, rw)
-        keys, sub_url = await svc.list_keys_with_url(user)
-        servers = await svc.list_servers_for_user(user) if sub_url else []
+        if user.remnawave_user_uuid:
+            keys_rows, sub_url, servers = await svc.list_keys_with_servers(user)
+        else:
+            keys_rows, sub_url, servers = [], "", []
     finally:
         await rw.aclose()
     qr = _qr_data_uri(sub_url) if sub_url else ""
-    # Per-server QR codes (data URIs) — same vless line.
+    # Available countries — only those with at least one currently-online node.
+    seen_cc: set[str] = set()
+    countries: list[dict] = []
+    for s in servers:
+        cc = (s.get("country_code") or "").upper()
+        if not cc or not s.get("is_connected"):
+            continue
+        if cc in seen_cc:
+            continue
+        seen_cc.add(cc)
+        countries.append({
+            "code": cc, "name": s.get("country") or cc,
+            "city": s.get("city") or "", "flag": s.get("flag") or "🌐",
+        })
+    # Per-server QR codes (for legacy keys' fallback rendering).
     server_qrs = {s["vless_url"]: _qr_data_uri(s["vless_url"]) for s in servers}
+    for row in keys_rows:
+        srv = row.get("server")
+        if srv and srv["vless_url"] not in server_qrs:
+            server_qrs[srv["vless_url"]] = _qr_data_uri(srv["vless_url"])
     return TEMPLATES.TemplateResponse(
         request, "cabinet/keys.html",
-        {"request": request, "user": user, "keys": keys,
+        {"request": request, "user": user, "keys_rows": keys_rows,
          "subscription_url": sub_url, "qr_data_uri": qr,
-         "servers": servers, "server_qrs": server_qrs,
+         "servers": servers, "countries": countries,
+         "server_qrs": server_qrs,
          "site_host": settings.site_host},
     )
 
@@ -96,9 +117,11 @@ async def keys_page(
 async def keys_create(
     request: Request,
     label: str = Form(..., min_length=1, max_length=64),
+    country: str = Form(..., min_length=2, max_length=4),
     user: User = Depends(require_user),
     db: AsyncSession = Depends(get_db),
 ):
+    from app.services.vpn_keys import NoServersInCountry
     if not user.is_approved:
         return RedirectResponse(url="/cabinet", status_code=303)
     label = label.strip()
@@ -107,7 +130,10 @@ async def keys_create(
     rw = RemnawaveAPI()
     try:
         svc = VpnKeysService(db, rw)
-        await svc.create_key(user, label=label)
+        try:
+            await svc.create_key(user, label=label, country_code=country)
+        except NoServersInCountry:
+            return RedirectResponse(url=f"/cabinet/keys?error=no_servers&country={country}", status_code=303)
     finally:
         await rw.aclose()
     return RedirectResponse(url="/cabinet/keys", status_code=303)

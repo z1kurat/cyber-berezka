@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import random
 from datetime import datetime, timezone
 from urllib.parse import unquote, urlparse
 
@@ -14,6 +15,10 @@ from app.models.user import User
 from app.models.vpn_key import VpnKey
 from app.services.geo import resolve_country
 from app.services.remnawave import RemnawaveAPI
+
+
+class NoServersInCountry(Exception):
+    """Raised when no online servers exist for the requested country code."""
 
 
 class VpnKeysService:
@@ -48,21 +53,77 @@ class VpnKeysService:
                 activeInternalSquads=[default_squad_uuid],
             )
 
-    async def create_key(self, user: User, label: str | None) -> tuple[VpnKey, str]:
-        """Create a VpnKey row, return (key, subscription_url)."""
+    async def create_key(
+        self, user: User, label: str, country_code: str,
+    ) -> tuple[VpnKey, dict]:
+        """Create a VpnKey bound to a random server in `country_code`.
+
+        The bound server's address and country are snapshotted into
+        VpnKey.meta. At render time the cabinet looks up the current server
+        with that address from the user's subscription URL and shows ONLY
+        that one server's deep-links for this key.
+
+        Raises NoServersInCountry if no online server is available there.
+        """
         await self.ensure_remnawave_user(user)
-        rw_user = await self.remnawave.get_user(user.remnawave_user_uuid)
-        subscription_url = rw_user.get("subscriptionUrl") or ""
+        servers = await self.list_servers_for_user(user)
+        target_cc = country_code.upper()
+        matching = [
+            s for s in servers
+            if (s.get("country_code") or "").upper() == target_cc and s.get("is_connected")
+        ]
+        if not matching:
+            raise NoServersInCountry(target_cc)
+        chosen = random.choice(matching)
         key = VpnKey(
             user_id=user.id,
-            label=label or f"Ключ от {datetime.now(timezone.utc).strftime('%d.%m.%Y')}",
+            label=label,
+            meta={
+                "country_code": chosen["country_code"],
+                "address": chosen["address"],
+            },
         )
         self.db.add(key)
-        log = AuditLog(user_id=user.id, event_type="key.create", event_data={"label": key.label})
+        log = AuditLog(
+            user_id=user.id,
+            event_type="key.create",
+            event_data={
+                "label": label,
+                "country": chosen["country_code"],
+                "address": chosen["address"],
+            },
+        )
         self.db.add(log)
         await self.db.commit()
         await self.db.refresh(key)
-        return key, subscription_url
+        return key, chosen
+
+    async def list_keys_with_servers(self, user: User) -> tuple[list[dict], str, list[dict]]:
+        """Return per-key resolved-server info + sub_url + full server list.
+
+        Each entry: {"key": VpnKey, "server": dict|None, "is_legacy": bool}.
+        - is_legacy=True for old keys (no address in meta) — those fall back
+          to showing all servers.
+        - server=None when the key's bound address is no longer online.
+        """
+        if not user.remnawave_user_uuid:
+            return [], "", []
+        servers = await self.list_servers_for_user(user)
+        addr_to_srv = {s["address"]: s for s in servers}
+        rw_user = await self.remnawave.get_user(user.remnawave_user_uuid)
+        sub_url = rw_user.get("subscriptionUrl", "")
+        result = await self.db.execute(
+            select(VpnKey).where(VpnKey.user_id == user.id, VpnKey.status == "active")
+            .order_by(VpnKey.id.desc())
+        )
+        keys = list(result.scalars())
+        out: list[dict] = []
+        for k in keys:
+            meta = k.meta if isinstance(k.meta, dict) else {}
+            bound_addr = meta.get("address")
+            srv = addr_to_srv.get(bound_addr) if bound_addr else None
+            out.append({"key": k, "server": srv, "is_legacy": not bound_addr})
+        return out, sub_url, servers
 
     async def list_keys_with_url(self, user: User) -> tuple[list[VpnKey], str]:
         result = await self.db.execute(
@@ -106,7 +167,9 @@ class VpnKeysService:
             addr = parsed.hostname or ""
             port = parsed.port or 0
             remark = unquote(parsed.fragment or "")
-            country_code = (node_by_addr.get(addr) or {}).get("countryCode")
+            node = node_by_addr.get(addr) or {}
+            country_code = node.get("countryCode")
+            is_connected = bool(node.get("isConnected"))
             country, city, flag = resolve_country(country_code)
             out.append({
                 "vless_url": line,
@@ -117,6 +180,7 @@ class VpnKeysService:
                 "city": city,
                 "flag": flag,
                 "country_code": country_code or "",
+                "is_connected": is_connected,
             })
         return out
 
