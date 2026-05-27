@@ -10,19 +10,23 @@
 
 Принцип: subscription отдаёт клиенту не плоский список `vless://`, а полноценный `XRAY_JSON` template с `outbounds` / `routing` / `balancer`, где Remnawave при генерации **инжектит реальные хосты** в позиции `injectHosts`. Шаблоны хранятся как `subscription-templates` (тип `XRAY_JSON`) и привязываются к хосту через поле `xrayJsonTemplateUuid`. Шаблоны кладутся в `infra/remnawave/configs/` и применяются через `apply.py` (IaC, см. `feedback_prefer_declarative_iac.md`).
 
-### Кейс 1 — RU-direct routing (приоритет: средний)
+### Кейс 1 — RU-direct routing (приоритет: на паузе после неудачной попытки 2026-05-27)
 
-**Status 2026-05-27:** **DONE.** Реализовано через Squad-per-mode архитектуру.
-- Spec: `docs/superpowers/specs/2026-05-27-protection-modes-design.md`
-- Plan: `docs/superpowers/plans/2026-05-27-protection-modes.md`
-- 2 squad'а (Default-Squad → «Полная», Mode-Smart → «Умная»), 6 host'ов (3 full + 3 smart с одинаковыми `address:port`), subscription-template `smart_routing` с `geoip:ru`/`geosite:category-{gov,bank,media}-ru` → direct.
-- Toggle на `/cabinet` (карточка наверху).
+**Попытка 2026-05-27 откатана.** Реализация через Squad-per-mode + XRAY_JSON template работала на уровне Remnawave (squad-toggle, корректная отдача `/json` с routing rules), но v2RayN-клиент НЕ применил routing.rules из подписки — весь трафик (включая `2ip.ru` с IP в `geoip:ru`) продолжил идти через VPN. Скорее всего v2RayN либо переопределяет subscription routing своими глобальными настройками, либо парсит только outbound из XRAY_JSON-config'а игнорируя routing-блок.
 
-**Status 2026-05-27 (final):** Реализован **site-proxy (Option B)** — endpoint `/api/sub/<short_uuid>` на нашем FastAPI выбирает upstream (`<remnawave_sub_url>` или `/json` суффикс) на основе `user.protection_mode`. URL подписки стабильный, формат меняется автоматически при toggle. Клиенту достаточно refresh подписки — URL не меняется.
+**Найденные технические данные** (полезны при следующей попытке):
+- Remnawave 2.7.4: 2 host'а могут иметь одинаковый `address:port` (проверено эмпирически).
+- `excludedInternalSquads: [<squad_uuid>]` на host'е работает как negative-filter (host скрыт от user'ов в перечисленных squad'ах).
+- POST `/api/subscription-templates` молча отбрасывает routing rules с типами `ip`/`domain`, оставляет только `protocol`. PATCH сохраняет всё.
+- Subscription endpoint: `<sub_url>` отдаёт base64-flat, `<sub_url>/json` отдаёт XRAY_JSON. User-Agent влияет только для sing-box (SFA/SFI).
+- `/api/internal-squads` POST требует `inbounds: [<uuid-list>]` (минимум один inbound).
 
-**Замечен баг Remnawave:** POST `/api/subscription-templates` отбрасывает routing rules с типами `ip` и `domain` (оставляет только `protocol`). PATCH сохраняет всё. `apply.py apply-protection-modes` делает POST + PATCH для гарантированной синхронизации body.
-
-**Существующим пользователям:** старый Remnawave URL `admin.<domain>/api/sub/<short_uuid>` продолжает работать (в любом режиме). Чтобы получить Умный режим — необходимо повторно импортировать в VPN-клиент новый URL `<site_host>/api/sub/<short_uuid>` (показывается в `/cabinet/keys`).
+**Альтернатива для будущей реализации — server-side routing:**
+Не полагаться на client-side routing rules. Вместо этого:
+- На наших LV/NL/DE нодах настроить Xray-core с routing-блоком: `geoip:ru → outbound: direct (freedom)`, остальное → outbound: freedom (наружу VPS).
+- Клиент шлёт ВЕСЬ трафик через VPN. Сервер сам решает, отправлять direct (для российских IP) или дальше.
+- Гарантированно работает с любым клиентом (v2RayN/Hiddify/NekoBox/sing-box).
+- Усложнение: нужна настройка `xray.json` на каждой ноде, разные правила NAT для direct-трафика.
 
 
 Трафик до российских ресурсов (geoip:ru + geosite:category-gov-ru / category-bank-ru / category-media-ru) маршрутизировать **в обход** Reality-туннеля, через `outbound: direct` на стороне клиента. Остальной трафик — через нашу ноду.

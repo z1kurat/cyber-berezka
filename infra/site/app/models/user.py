@@ -40,10 +40,6 @@ class User(Base, TimestampMixin):
     failed_login_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     locked_until: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True))
 
-    protection_mode: Mapped[str] = mapped_column(
-        String(16), default="full", nullable=False, server_default="full",
-    )
-
     @property
     def is_email_verified(self) -> bool:
         return self.email_verified_at is not None

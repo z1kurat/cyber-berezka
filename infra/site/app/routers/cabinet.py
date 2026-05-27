@@ -17,7 +17,6 @@ from app.deps import get_redis, require_user, verify_csrf_token
 from app.services.geo import resolve_country
 from app.services.nodes import NodesService
 from app.models.user import User
-from app.services.protection import ProtectionService
 from app.services.remnawave import RemnawaveAPI
 from app.services.vpn_keys import VpnKeysService
 
@@ -160,20 +159,3 @@ async def keys_revoke(
     finally:
         await rw.aclose()
     return RedirectResponse(url="/cabinet/keys", status_code=303)
-
-
-@router.post("/protection-mode")
-async def set_protection_mode(
-    mode: str = Form(..., pattern="^(full|smart)$"),
-    user: User = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    _csrf: None = Depends(verify_csrf_token),
-):
-    if not user.is_approved:
-        return RedirectResponse(url="/cabinet", status_code=303)
-    rw = RemnawaveAPI()
-    try:
-        await ProtectionService(db, rw).set_mode(user, mode)  # type: ignore[arg-type]
-    finally:
-        await rw.aclose()
-    return RedirectResponse(url="/cabinet/keys?mode_updated=1", status_code=303)

@@ -220,9 +220,8 @@ P1 закрыт. Изменения по группам:
 
 ## Deploy status 2026-05-27
 
-P1 batch задеплоен на production (Beget VPS 212.74.231.217) вместе с фичей protection-modes одной волной:
-- Commits: `dc4143c` (P1 — hashed sessions, CSRF, rate-limit, brute-force) + 7 коммитов protection-modes (см. `git log`).
-- Migrate: Alembic `0002_protection_mode` применена (column added with default 'full' — все существующие user'ы получили full mode).
-- Verification: `/healthz`, `/auth/login`, `/cabinet` отвечают 200 через Caddy. Toggle full↔smart верифицирован на DB+Remnawave уровне (Tasks 14-15 плана protection-modes).
+P1 batch задеплоен на production (Beget VPS 212.74.231.217):
+- Commit: `dc4143c` (P1 — hashed sessions, CSRF, rate-limit, brute-force).
+- Verification: `/healthz`, `/auth/login`, `/cabinet` отвечают 200 через Caddy.
 - Side-effect: все существующие сессии инвалидированы (session_id теперь SHA-256 в БД, старые plaintext не матчатся). Пользователи перелогинятся естественно.
 

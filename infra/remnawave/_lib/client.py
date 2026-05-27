@@ -111,49 +111,6 @@ class RemnawaveClient:
             return {"total": len(data), "users": data}
         return data
 
-    # --- subscription-templates ---
-    def list_subscription_templates(self) -> list[dict]:
-        data = self.get("/api/subscription-templates") or {}
-        return data.get("templates", []) if isinstance(data, dict) else (data or [])
-
-    def get_subscription_template(self, uuid: str) -> dict:
-        return self.get(f"/api/subscription-templates/{uuid}")
-
-    def create_subscription_template(self, name: str, template_json: dict, template_type: str = "XRAY_JSON") -> dict:
-        return self.post("/api/subscription-templates", json={
-            "name": name,
-            "templateType": template_type,
-            "templateJson": template_json,
-        })
-
-    def update_subscription_template(self, uuid: str, template_json: dict) -> dict:
-        """PATCH the template body. Used by apply.py because POST silently
-        drops some `routing.rules` (only `protocol` rules survive) — PATCH
-        preserves the full ruleset."""
-        return self.patch("/api/subscription-templates", json={
-            "uuid": uuid,
-            "templateJson": template_json,
-        })
-
-    # --- internal squads (write) ---
-    def create_squad(self, name: str, inbounds: list[str]) -> dict:
-        """Create an internal squad bound to the given inbound UUIDs.
-
-        Remnawave validates that `inbounds` is a non-empty array of inbound
-        UUIDs — the squad otherwise can't render a working subscription.
-        """
-        return self.post("/api/internal-squads", json={"name": name, "inbounds": inbounds})
-
-    # --- hosts (write) ---
-    def create_host(self, payload: dict) -> dict:
-        return self.post("/api/hosts", json=payload)
-
-    def update_host(self, uuid: str, **fields) -> dict:
-        return self.patch("/api/hosts", json={"uuid": uuid, **fields})
-
-    def delete_host(self, uuid: str) -> dict:
-        return self.delete(f"/api/hosts/{uuid}")
-
     def health(self) -> dict:
         return self.get("/api/system/health")
 
