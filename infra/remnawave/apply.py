@@ -117,6 +117,103 @@ def cmd_status(client: RemnawaveClient) -> int:
     return 0
 
 
+def cmd_apply_protection_modes(client, template_file):
+    """Идемпотентная установка инфраструктуры для «Полной» / «Умной защиты».
+
+    1. Создать subscription-template smart_routing (если нет).
+    2. Создать internal squad Mode-Smart (если нет).
+    3. Для каждого существующего host'а: создать smart-копию (если нет),
+       обновить excludedInternalSquads на full-host'ах.
+
+    Печатает финальные UUID'ы для добавления в .env.
+    """
+    import json as _json
+
+    DEFAULT_SQUAD_NAME = "Default-Squad"
+    SMART_SQUAD_NAME = "Mode-Smart"
+    SMART_TEMPLATE_NAME = "smart_routing"
+    smart_remark_marker = " — Smart"
+
+    template_payload = _json.loads(template_file.read_text())
+    template_name = template_payload.get("name", SMART_TEMPLATE_NAME)
+    template_json = template_payload["templateJson"]
+    template_type = template_payload.get("templateType", "XRAY_JSON")
+
+    # 1. Subscription template — idempotent by name
+    templates = client.list_subscription_templates()
+    smart_template = next(
+        (t for t in templates if t.get("name") == template_name and t.get("templateType") == template_type),
+        None,
+    )
+    if smart_template is None:
+        smart_template = client.create_subscription_template(template_name, template_json, template_type)
+        print(f"Created subscription-template '{template_name}' uuid={smart_template.get('uuid')}")
+    else:
+        print(f"Skip subscription-template '{template_name}' — already exists uuid={smart_template.get('uuid')}")
+    smart_template_uuid = smart_template["uuid"]
+
+    # 2. Squads — find Default, create Mode-Smart if missing
+    squads = client.list_squads()
+    default_squad = next((s for s in squads if s.get("name") == DEFAULT_SQUAD_NAME), None)
+    if default_squad is None:
+        print(f"ERROR: Default squad '{DEFAULT_SQUAD_NAME}' not found. Aborting.")
+        return 2
+    default_squad_uuid = default_squad["uuid"]
+
+    smart_squad = next((s for s in squads if s.get("name") == SMART_SQUAD_NAME), None)
+    if smart_squad is None:
+        smart_squad = client.create_squad(SMART_SQUAD_NAME)
+        print(f"Created squad '{SMART_SQUAD_NAME}' uuid={smart_squad.get('uuid')}")
+    else:
+        print(f"Skip squad '{SMART_SQUAD_NAME}' — already exists uuid={smart_squad.get('uuid')}")
+    smart_squad_uuid = smart_squad["uuid"]
+
+    # 3. Hosts — for each existing host (not yet a smart-copy), create smart sibling
+    hosts = client.list_hosts()
+    full_hosts = [h for h in hosts if smart_remark_marker not in h.get("remark", "")]
+    smart_hosts = [h for h in hosts if smart_remark_marker in h.get("remark", "")]
+
+    # 3a. Create missing smart-copies
+    smart_by_remark = {h["remark"]: h for h in smart_hosts}
+    for full_h in full_hosts:
+        full_remark = full_h.get("remark", "")
+        smart_remark = full_remark + smart_remark_marker
+        if smart_remark in smart_by_remark:
+            print(f"Skip smart-host '{smart_remark}' — already exists uuid={smart_by_remark[smart_remark]['uuid']}")
+            continue
+        payload = {
+            "inbound": full_h["inbound"],
+            "remark": smart_remark,
+            "address": full_h["address"],
+            "port": full_h["port"],
+            "sni": full_h.get("sni") or "",
+            "host": full_h.get("host") or "",
+            "fingerprint": full_h.get("fingerprint") or "chrome",
+            "isDisabled": False,
+            "securityLayer": full_h.get("securityLayer") or "DEFAULT",
+            "excludedInternalSquads": [default_squad_uuid],
+            "xrayJsonTemplateUuid": smart_template_uuid,
+        }
+        created = client.create_host(payload)
+        print(f"Created smart-host '{smart_remark}' uuid={created.get('uuid')}")
+
+    # 3b. Update existing full-hosts: exclude them from Mode-Smart squad
+    for full_h in full_hosts:
+        existing_excludes = set(full_h.get("excludedInternalSquads") or [])
+        if smart_squad_uuid in existing_excludes:
+            print(f"Skip full-host '{full_h['remark']}' — already excludes Mode-Smart")
+            continue
+        new_excludes = list(existing_excludes | {smart_squad_uuid})
+        client.update_host(full_h["uuid"], excludedInternalSquads=new_excludes)
+        print(f"Updated full-host '{full_h['remark']}' — excludedInternalSquads += Mode-Smart")
+
+    print()
+    print("=== Append these to infra/.env ===")
+    print(f"REMNAWAVE_SQUAD_FULL_UUID={default_squad_uuid}")
+    print(f"REMNAWAVE_SQUAD_SMART_UUID={smart_squad_uuid}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Declarative Remnawave provisioning (read-only stage)",
@@ -155,6 +252,16 @@ def main(argv: list[str] | None = None) -> int:
         default=HERE.parent / ".env",
         help="Path to .env where new keys are written (default: infra/.env)",
     )
+    p_pm = subs.add_parser(
+        "apply-protection-modes",
+        help="create smart_routing template + Mode-Smart squad + smart-host copies",
+    )
+    p_pm.add_argument(
+        "--template-file",
+        type=Path,
+        default=HERE / "configs" / "template_smart_routing.json",
+        help="Path to smart template JSON (default: configs/template_smart_routing.json)",
+    )
     # Stages to follow: plan, apply, validate, destroy.
     args = parser.parse_args(argv)
 
@@ -174,6 +281,8 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Reality keys rotated. Written to {args.env_file_target}")
                 print(f"Public key (use for hosts.yaml / clients): {pub}")
                 return 0
+            if args.cmd == "apply-protection-modes":
+                return cmd_apply_protection_modes(client, args.template_file)
     except RuntimeError as exc:
         print(f"Configuration error: {exc}", file=sys.stderr)
         print(
