@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cyber Berezka — защищённое соединение</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231A1818'/%3E%3Ctext x='16' y='22' font-family='Inter, sans-serif' font-size='18' font-weight='600' fill='%23B8935A' text-anchor='middle' letter-spacing='-0.05em'%3E%D0%91%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://rsms.me/">
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<style>
+  :root {
+    --cream: #F7F3EB;
+    --cream-soft: #FDFAF3;
+    --cream-deep: #EFE6D2;
+    --gold: #B8935A;
+    --gold-deep: #966D40;
+    --gold-dim: rgba(184,147,90,0.20);
+    --wine: #B8351F;
+    --ink: #1A1818;
+    --ink-2: #2A2624;
+    --muted: #6B6661;
+    --muted-2: #8B7E6A;
+    --border: rgba(184,147,90,0.24);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--cream); font-family: 'Inter', -apple-system, system-ui, sans-serif; color: var(--ink); overflow-x: hidden; font-feature-settings: 'ss01', 'cv11'; }
+  a { color: inherit; text-decoration: none; }
+
+  /* === SCROLL PROGRESS BAR === */
+  .scroll-progress { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--gold) 0%, var(--wine) 100%); z-index: 100; transition: width 80ms linear; box-shadow: 0 0 12px rgba(184,147,90,0.6); }
+
+  /* === ATMOSPHERE === */
+  .mesh { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; will-change: transform; }
+  .blob-1 { width: 720px; height: 720px; background: radial-gradient(circle, rgba(184,147,90,0.35) 0%, transparent 70%); top: -200px; left: -150px; animation: bm1 30s ease-in-out infinite; }
+  .blob-2 { width: 580px; height: 580px; background: radial-gradient(circle, rgba(184,53,31,0.16) 0%, transparent 70%); top: 80vh; right: -100px; animation: bm2 36s ease-in-out infinite; }
+  .blob-3 { width: 480px; height: 480px; background: radial-gradient(circle, rgba(232,220,192,0.6) 0%, transparent 70%); top: 160vh; left: 30%; animation: bm3 26s ease-in-out infinite; }
+  .blob-4 { width: 620px; height: 620px; background: radial-gradient(circle, rgba(184,147,90,0.22) 0%, transparent 70%); top: 240vh; left: 60%; animation: bm1 32s ease-in-out infinite reverse; }
+  @keyframes bm1 { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(120px,80px) scale(1.1);} }
+  @keyframes bm2 { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-180px,-60px) scale(1.15);} }
+  @keyframes bm3 { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(80px,-100px) scale(0.9);} }
+  .grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.45; mix-blend-mode: multiply; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.09 0 0 0 0 0.09 0 0 0 0.12 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* === NAV === */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 4rem; backdrop-filter: blur(14px); background: rgba(247,243,235,0.6); border-bottom: 1px solid transparent; transition: border-color 240ms, background 240ms; }
+  .nav.scrolled { border-bottom-color: var(--gold-dim); background: rgba(247,243,235,0.88); }
+  .brand { display: flex; align-items: center; gap: 0.55rem; font-weight: 600; font-size: 1.0625rem; letter-spacing: -0.015em; }
+  .brand-mark { width: 26px; height: 26px; background: linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 100%); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-weight: 600; color: var(--gold); font-size: 0.92rem; letter-spacing: -0.04em; line-height: 1; transition: transform 280ms cubic-bezier(0.22,1,0.36,1); }
+  .brand:hover .brand-mark { transform: rotate(-6deg) scale(1.08); }
+  .nav-links { display: flex; gap: 2.25rem; font-size: 0.875rem; color: var(--muted); }
+  .nav-link { position: relative; padding: 0.25rem 0; transition: color 180ms; }
+  .nav-link::after { content:''; position:absolute; bottom:-3px; left:50%; transform:translateX(-50%); width:0; height:1px; background:var(--ink); transition: width 260ms ease; }
+  .nav-link:hover { color: var(--ink); }
+  .nav-link:hover::after { width: 100%; }
+  .nav-cta { background: var(--ink); color: var(--cream); padding: 0.6rem 1.3rem; border-radius: 7px; font-size: 0.825rem; font-weight: 500; transition: transform 180ms, box-shadow 240ms; }
+  .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(26,24,24,0.18); }
+
+  /* === SECTION GENERIC === */
+  .section { position: relative; z-index: 5; padding: 7rem 4rem; max-width: 1280px; margin: 0 auto; }
+  .section-tag { display: inline-flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 2rem; }
+  .section-tag-line { display: inline-block; height: 1px; background: var(--gold); width: 32px; transform: scaleX(0); transform-origin: left; transition: transform 800ms ease 200ms; }
+  .section.in-view .section-tag-line { transform: scaleX(1); }
+  h2.section-title { font-size: clamp(2.2rem, 4.6vw, 3.6rem); line-height: 1.04; letter-spacing: -0.028em; font-weight: 600; margin-bottom: 1.5rem; max-width: 900px; }
+  .reveal { opacity: 0; transform: translateY(80px); transition: opacity 1100ms cubic-bezier(0.22,1,0.36,1), transform 1100ms cubic-bezier(0.22,1,0.36,1); }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 100ms; }
+  .reveal-delay-2 { transition-delay: 200ms; }
+  .reveal-delay-3 { transition-delay: 300ms; }
+  .reveal-delay-4 { transition-delay: 400ms; }
+
+  /* === DIVIDER === */
+  .divider { position: relative; z-index: 5; max-width: 1280px; margin: 0 auto; padding: 0 4rem; }
+  .divider-inner { height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); }
+
+  /* === HERO CENTERED === */
+  .hero { position: relative; z-index: 5; padding: 9rem 4rem 4rem; max-width: 1100px; margin: 0 auto; text-align: center; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 0.75rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 2rem; opacity: 0; animation: fadeUp 800ms ease-out 200ms forwards; }
+  .eyebrow-line { display: inline-block; height: 1px; background: var(--gold); width: 0; animation: drawLine 1.2s ease-out 400ms forwards; }
+  .eyebrow-line:nth-child(3) { animation-delay: 500ms; }
+  @keyframes drawLine { to { width: 32px; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  h1.headline { font-size: clamp(3.2rem, 7.5vw, 5.8rem); line-height: 1; letter-spacing: -0.035em; font-weight: 600; margin: 0 auto 2rem; max-width: 940px; }
+  h1.headline .line { display: block; overflow: hidden; }
+  h1.headline .word { display: inline-block; opacity: 0; transform: translateY(110%); animation: wordIn 900ms cubic-bezier(0.22,1,0.36,1) forwards; }
+  h1.headline .accent { color: var(--gold); position: relative; font-style: italic; }
+  h1.headline .accent::after { content:''; position:absolute; left:0; right:0; bottom:0.04em; height:0.07em; background: linear-gradient(90deg, transparent, var(--gold-dim), transparent); transform: scaleX(0); transform-origin: center; animation: drawUnderline 1.2s ease-out 1.5s forwards; }
+  @keyframes drawUnderline { to { transform: scaleX(1); } }
+  @keyframes wordIn { to { opacity: 1; transform: translateY(0); } }
+  .lead { font-size: 1.18rem; line-height: 1.55; color: var(--muted); max-width: 600px; margin: 0 auto 2.5rem; font-weight: 400; opacity: 0; animation: fadeUp 900ms ease-out 1.2s forwards; }
+  .cta-row { display: flex; align-items: center; justify-content: center; gap: 1.25rem; margin-bottom: 3rem; opacity: 0; animation: fadeUp 900ms ease-out 1.4s forwards; flex-wrap: wrap; }
+  .cta-primary { position: relative; background: var(--wine); color: #fff; padding: 1.05rem 1.85rem; border-radius: 8px; font-size: 0.95rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.55rem; overflow: hidden; box-shadow: 0 6px 20px rgba(184,53,31,0.28), inset 0 1px 0 rgba(255,255,255,0.15); transition: transform 240ms cubic-bezier(0.22,1,0.36,1), box-shadow 240ms; }
+  .cta-primary::before { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent); transition: left 700ms ease; }
+  .cta-primary:hover::before { left: 100%; }
+  .cta-primary:hover { box-shadow: 0 10px 32px rgba(184,53,31,0.38); transform: translateY(-2px); }
+  .cta-primary svg { width: 14px; height: 14px; transition: transform 240ms ease; }
+  .cta-primary:hover svg { transform: translateX(3px); }
+  .cta-secondary { color: var(--ink); padding: 1.05rem 0.5rem; font-size: 0.95rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem; position: relative; }
+  .cta-secondary::after { content:''; position:absolute; left:0.5rem; right:0.5rem; bottom:0.85rem; height:1px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform 260ms ease; }
+  .cta-secondary:hover::after { transform: scaleX(1); }
+  .cta-secondary .arrow { transition: transform 240ms ease; display: inline-block; }
+  .cta-secondary:hover .arrow { transform: translateX(4px); }
+  .trust { display: flex; gap: 3rem; padding-top: 2.5rem; margin-top: 1rem; justify-content: center; border-top: 1px solid var(--gold-dim); opacity: 0; animation: fadeUp 1s ease-out 1.6s forwards; flex-wrap: wrap; }
+  .trust-item { display: flex; flex-direction: column; gap: 0.3rem; }
+  .trust-value { font-size: 1.5rem; font-weight: 600; color: var(--ink); letter-spacing: -0.02em; }
+  .trust-label { font-size: 0.815rem; color: var(--muted-2); }
+  .live-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#5F8B5C; margin-right:0.4rem; animation: pulse-live 1.8s ease-in-out infinite; }
+  @keyframes pulse-live { 0%,100%{opacity:0.5;} 50%{opacity:1;} }
+
+  /* === HERO PREVIEW with clean div-based connection lines === */
+  .hero-preview { position: relative; z-index: 4; padding: 4rem 4rem 6rem; max-width: 1280px; margin: 0 auto; }
+  .preview-stage { position: relative; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4rem; align-items: center; }
+  .conn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 1.2px;
+    width: 4rem;
+    background: repeating-linear-gradient(90deg, rgba(184,147,90,0.35) 0 3px, transparent 3px 8px);
+    background-size: 8px 100%;
+    opacity: 0.85;
+    z-index: 0;
+    animation: connFlow 4s linear infinite;
+    overflow: visible;
+  }
+  .conn::before, .conn::after {
+    content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+    width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184,147,90,0.15);
+  }
+  .conn::before { left: -3px; }
+  .conn::after { right: -3px; }
+  .conn-1 { left: calc(33.333% - 2rem); }
+  .conn-2 { left: calc(66.666% - 2rem); }
+  @keyframes connFlow { from { background-position: 0 0; } to { background-position: 24px 0; } }
+
+  /* Paper-plane flying along the connection line between server cards.
+     Starts AFTER node-cards have finished loading-in (which completes around 2.4s). */
+  .plane {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--gold);
+    transform: translateY(-50%);
+    filter: drop-shadow(0 2px 6px rgba(184,147,90,0.45));
+    opacity: 0;
+    animation: planeFly 3.6s cubic-bezier(0.5, 0, 0.5, 1) 2.6s infinite;
+    will-change: transform, opacity, left;
+    pointer-events: none;
+  }
+  .conn-2 .plane { animation-delay: 4.4s; }
+  @keyframes planeFly {
+    0%   { left: -14px;            opacity: 0; transform: translateY(-50%) rotate(-4deg); }
+    15%  { left: 0;                opacity: 1; transform: translateY(-90%) rotate(-2deg); }
+    50%  { left: calc(50% - 9px);  opacity: 1; transform: translateY(-50%) rotate(2deg); }
+    85%  { opacity: 1;             transform: translateY(-90%) rotate(0deg); }
+    100% { left: calc(100% + 6px); opacity: 0; transform: translateY(-50%) rotate(-3deg); }
+  }
+
+  .node-card {
+    position: relative;
+    background: #FFFCF6;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 28px 60px rgba(26,24,24,0.10);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    will-change: transform, opacity;
+    z-index: 1;
+    transform-style: preserve-3d;
+    transition: opacity 700ms cubic-bezier(0.22,1,0.36,1), box-shadow 380ms;
+  }
+  /* .loaded class added by JS with stagger — only fades opacity in.
+     transform stays untouched so tilt JS owns it cleanly. */
+  .node-card.loaded { opacity: 1; }
+  .node-card:hover { box-shadow: 0 36px 80px rgba(26,24,24,0.14); }
+  .nc-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem; }
+  .nc-flag { font-size: 1.6rem; line-height: 1; }
+  .nc-country { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+  .nc-city { font-size: 0.74rem; color: var(--muted-2); margin-top: 0.05rem; }
+  .nc-status { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; color: #5F8B5C; font-weight: 600; padding: 0.18rem 0.5rem; border-radius: 999px; background: rgba(95,139,92,0.1); }
+  .nc-status-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: pulse-live 1.6s ease-in-out infinite; }
+  .nc-meta { display: flex; gap: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--border); font-size: 0.74rem; color: var(--muted); }
+  .nc-meta-item { display: flex; flex-direction: column; gap: 0.1rem; }
+  .nc-meta-label { color: var(--muted-2); font-size: 0.65rem; letter-spacing: 0.05em; text-transform: uppercase; }
+  .nc-meta-value { color: var(--ink); font-weight: 500; font-size: 0.8rem; }
+  .nc-bar { height: 4px; background: rgba(184,147,90,0.18); border-radius: 999px; margin: 0.85rem 0 0.5rem; overflow: hidden; position: relative; }
+  .nc-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-deep)); border-radius: 999px; position: relative; transform-origin: left; transform: scaleX(0); animation: barFill 1.6s cubic-bezier(0.22,1,0.36,1) 2.2s forwards; }
+  .nc-bar-fill::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shimmer 2.6s linear infinite; }
+  @keyframes barFill { to { transform: scaleX(var(--fill, 0.85)); } }
+  @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+  /* === MARQUEE === */
+  .marquee { position: relative; z-index: 5; overflow: hidden; padding: 2.5rem 0; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); background: linear-gradient(180deg, transparent, rgba(184,147,90,0.04), transparent); }
+  .marquee-track { display: flex; gap: 3rem; animation: scroll 40s linear infinite; white-space: nowrap; }
+  .marquee-item { font-size: 2.2rem; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); display: inline-flex; align-items: center; gap: 2rem; }
+  .marquee-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+  @keyframes scroll { to { transform: translateX(-50%); } }
+  .marquee .accent { color: var(--gold); font-style: italic; }
+
+  /* === STATS === */
+  .stats-section { position: relative; padding: 6rem 4rem; max-width: 1280px; margin: 0 auto; z-index: 5; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 3rem; padding: 3rem 0; border-top: 1px solid var(--gold-dim); border-bottom: 1px solid var(--gold-dim); position: relative; }
+  .stat { text-align: left; position: relative; }
+  .stat-num { font-size: clamp(3rem, 6vw, 4.6rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1; color: var(--ink); margin-bottom: 0.5rem; }
+  .stat-num .unit { color: var(--gold); font-size: 0.55em; vertical-align: top; margin-left: 0.2em; }
+  .stat-label { font-size: 0.875rem; color: var(--muted); line-height: 1.4; }
+  .stat::before { content: ''; position: absolute; top: -3rem; left: 0; width: 3px; height: 24px; background: var(--gold); opacity: 0; transition: opacity 600ms ease; }
+  .stats-section.in-view .stat::before { opacity: 1; transition-delay: calc(var(--i) * 100ms); }
+
+  /* === ABOUT NAME === */
+  .about-name { position: relative; padding: 8rem 4rem; max-width: 1280px; margin: 0 auto; z-index: 5; overflow: hidden; }
+  .about-name-bg-letter { position: absolute; font-size: clamp(20rem, 32vw, 36rem); font-weight: 600; color: rgba(184,147,90,0.05); line-height: 0.7; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0; pointer-events: none; letter-spacing: -0.04em; user-select: none; }
+  .about-name-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 5rem; align-items: center; position: relative; z-index: 1; }
+  .about-art { aspect-ratio: 4/5; border-radius: 16px; background: repeating-linear-gradient(0deg, transparent, transparent 26px, rgba(26,24,24,0.05) 26px, rgba(26,24,24,0.05) 28px), linear-gradient(180deg, #FFFCF6 0%, var(--cream-deep) 100%); border: 1px solid var(--border); box-shadow: 0 24px 60px rgba(26,24,24,0.08); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; transform-style: preserve-3d; }
+  .about-art .single-leaf { width: 70%; height: auto; transform: rotate(-6deg); transition: transform 1.5s ease-out; opacity: 0; }
+  .about-name.in-view .about-art .single-leaf { opacity: 1; transform: rotate(0deg); }
+  .about-art .leaf-meta { position: absolute; bottom: 1.5rem; left: 1.5rem; right: 1.5rem; display: flex; justify-content: space-between; font-family: 'JetBrains Mono', Menlo, monospace; font-size: 0.7rem; color: var(--muted-2); text-transform: uppercase; letter-spacing: 0.08em; }
+  .about-name h2 { font-size: clamp(1.9rem, 3.8vw, 2.6rem); line-height: 1.1; letter-spacing: -0.025em; font-weight: 600; margin-bottom: 1.5rem; }
+  .about-name h2 em { color: var(--gold); font-style: italic; }
+  .about-name p { font-size: 1.05rem; line-height: 1.65; color: var(--muted); margin-bottom: 1rem; }
+  .about-name p strong { color: var(--ink); font-weight: 500; }
+
+  /* === STEPS === */
+  .steps-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-top: 4rem; }
+  .step { padding: 2.5rem; background: rgba(255,255,255,0.5); border: 1px solid var(--border); border-radius: 16px; position: relative; transition: box-shadow 380ms, border-color 380ms; backdrop-filter: blur(4px); transform-style: preserve-3d; will-change: transform; }
+  .step:hover { box-shadow: 0 24px 60px rgba(26,24,24,0.08); border-color: var(--gold); }
+  .step-number { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.14em; color: var(--gold); margin-bottom: 1.5rem; }
+  .step-number::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--gold); margin-right: 0.6rem; vertical-align: middle; }
+  .step-title { font-size: 1.4rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 0.8rem; }
+  .step-text { font-size: 0.95rem; line-height: 1.6; color: var(--muted); }
+  .step-icon { width: 52px; height: 52px; margin-bottom: 1.5rem; border-radius: 12px; background: var(--cream-deep); display: flex; align-items: center; justify-content: center; transition: transform 380ms; }
+  .step:hover .step-icon { transform: scale(1.1) rotate(-5deg); }
+
+  /* === SERVERS === */
+  .servers-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-top: 4rem; }
+  .server-card { padding: 2rem; background: #FFFCF6; border: 1px solid var(--border); border-radius: 16px; position: relative; overflow: hidden; transition: box-shadow 380ms; cursor: pointer; transform-style: preserve-3d; will-change: transform; }
+  .server-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, transparent 40%, rgba(184,147,90,0.08) 100%); opacity: 0; transition: opacity 380ms; }
+  .server-card:hover { box-shadow: 0 28px 60px rgba(26,24,24,0.08); }
+  .server-card:hover::before { opacity: 1; }
+  .server-flag { font-size: 2.6rem; line-height: 1; margin-bottom: 1rem; }
+  .server-country { font-size: 1.3rem; font-weight: 600; letter-spacing: -0.018em; margin-bottom: 0.25rem; }
+  .server-city { font-size: 0.875rem; color: var(--muted); margin-bottom: 1.4rem; }
+  .server-stat { display: flex; justify-content: space-between; padding: 0.6rem 0; border-top: 1px solid var(--border); font-size: 0.83rem; }
+  .server-stat:last-child { border-bottom: 1px solid var(--border); }
+  .server-stat-label { color: var(--muted-2); }
+  .server-stat-value { color: var(--ink); font-weight: 500; }
+  .server-status { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #5F8B5C; font-weight: 500; margin-top: 1rem; }
+  .server-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse-live 1.8s ease-in-out infinite; }
+
+  /* === FEATURES === */
+  .feature-row { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; margin-bottom: 6rem; }
+  .feature-row:nth-child(even) > :first-child { order: 2; }
+  .feature-row:last-child { margin-bottom: 0; }
+  .feature-eyebrow { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em; color: var(--gold); text-transform: uppercase; margin-bottom: 1rem; }
+  .feature-title { font-size: 2rem; line-height: 1.1; letter-spacing: -0.025em; font-weight: 600; margin-bottom: 1.25rem; }
+  .feature-text { font-size: 1rem; line-height: 1.65; color: var(--muted); margin-bottom: 1.5rem; }
+  .feature-list { list-style: none; }
+  .feature-list li { display: flex; align-items: flex-start; gap: 0.7rem; padding: 0.55rem 0; font-size: 0.93rem; color: var(--ink-2); }
+  .feature-list li::before { content: ''; width: 16px; height: 16px; margin-top: 0.2rem; flex-shrink: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M4 10l4 4 8-8' stroke='%23B8935A' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center; }
+  .feature-art { aspect-ratio: 4/3; border-radius: 16px; border: 1px solid var(--border); background: #FFFCF6; position: relative; overflow: hidden; padding: 2rem; transform-style: preserve-3d; will-change: transform; }
+  .term { font-family: 'JetBrains Mono', 'SF Mono', Menlo, monospace; font-size: 0.78rem; background: var(--ink); color: var(--cream); border-radius: 8px; padding: 1.25rem; line-height: 1.6; box-shadow: 0 20px 50px rgba(26,24,24,0.18); }
+  .term-prompt { color: var(--gold); }
+  .term-output { color: var(--cream); opacity: 0.85; }
+  .term-line { display: block; min-height: 1.2em; }
+  .term-typing::after { content: '_'; animation: blink 1s steps(2) infinite; color: var(--gold); }
+  @keyframes blink { 50% { opacity: 0; } }
+  .cab-card { background: #FFFCF6; border: 1px solid var(--border); border-radius: 12px; padding: 1.6rem; box-shadow: 0 28px 60px rgba(26,24,24,0.08); }
+  .cab-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.2rem; }
+  .cab-card-title { font-size: 1.05rem; font-weight: 600; letter-spacing: -0.01em; }
+  .cab-card-sub { font-size: 0.78rem; color: var(--muted-2); }
+  .cab-badge { padding: 0.25rem 0.6rem; border-radius: 999px; background: rgba(95,139,92,0.12); color: #4A7146; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+  .cab-key { font-family: 'JetBrains Mono', Menlo, monospace; font-size: 0.78rem; background: var(--cream-soft); border: 1px solid var(--border); border-radius: 6px; padding: 0.75rem 0.95rem; color: var(--ink-2); word-break: break-all; line-height: 1.5; margin-bottom: 1rem; }
+  .cab-actions { display: flex; gap: 0.6rem; }
+  .cab-btn { font-size: 0.78rem; padding: 0.55rem 1rem; border-radius: 6px; font-weight: 500; cursor: pointer; transition: all 220ms; border: 1px solid transparent; background: var(--ink); color: var(--cream); }
+  .cab-btn.outline { background: transparent; color: var(--ink); border-color: var(--border); }
+  .cab-btn:hover { transform: translateY(-1px); }
+
+  /* === COMPARISON === */
+  .compare-section { background: linear-gradient(180deg, transparent, rgba(184,147,90,0.05), transparent); padding: 7rem 0; position: relative; z-index: 5; overflow: hidden; }
+  .compare-inner { max-width: 1180px; margin: 0 auto; padding: 0 4rem; }
+  .bark-pattern { position: absolute; inset: 0; background-image: repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(26,24,24,0.025) 50px, rgba(26,24,24,0.025) 52px); pointer-events: none; }
+  .compare-table { display: grid; grid-template-columns: 2fr 1fr 1fr; background: #FFFCF6; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-top: 3rem; box-shadow: 0 28px 60px rgba(26,24,24,0.06); }
+  .ct-cell { padding: 1.25rem 1.5rem; font-size: 0.93rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
+  .ct-cell:nth-last-child(-n+3) { border-bottom: none; }
+  .ct-head { font-weight: 600; letter-spacing: -0.01em; background: var(--cream-deep); border-bottom: 1px solid var(--border); }
+  .ct-head .col-tag { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; color: var(--gold); text-transform: uppercase; margin-bottom: 0.3rem; }
+  .ct-row-label { color: var(--ink); font-weight: 500; }
+  .ct-yes::before { content: '✓'; color: #5F8B5C; font-weight: 600; margin-right: 0.5rem; }
+  .ct-no::before { content: '✕'; color: var(--muted-2); font-weight: 600; margin-right: 0.5rem; }
+  .ct-our { color: var(--ink); }
+  .ct-other { color: var(--muted); }
+  .ct-cell.highlight { background: rgba(184,147,90,0.05); }
+
+  /* === PRICING === */
+  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-top: 4rem; }
+  .price-card { padding: 2.5rem 2rem; background: #FFFCF6; border: 1px solid var(--border); border-radius: 16px; position: relative; transition: box-shadow 380ms, border-color 380ms; transform-style: preserve-3d; will-change: transform; }
+  .price-card.featured { border: 2px solid var(--gold); background: linear-gradient(180deg, #FFFCF6 0%, var(--cream-deep) 100%); transform: translateY(-12px); }
+  .price-card.featured::before { content: 'Рекомендуем'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--wine); color: #fff; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.35rem 1rem; border-radius: 999px; }
+  .price-card:hover:not(.featured) { box-shadow: 0 24px 50px rgba(26,24,24,0.08); }
+  .price-card.featured:hover { box-shadow: 0 32px 70px rgba(26,24,24,0.12); }
+  .price-name { font-size: 0.85rem; font-weight: 600; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1.2rem; }
+  .price-amount { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.5rem; }
+  .price-num { font-size: 3rem; font-weight: 600; letter-spacing: -0.04em; }
+  .price-per { font-size: 1rem; color: var(--muted-2); }
+  .price-desc { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.75rem; line-height: 1.5; }
+  .price-features { list-style: none; padding: 1.5rem 0 0; border-top: 1px solid var(--border); margin-bottom: 1.75rem; }
+  .price-features li { display: flex; gap: 0.6rem; padding: 0.45rem 0; font-size: 0.88rem; }
+  .price-features li::before { content: ''; width: 14px; height: 14px; margin-top: 0.18rem; flex-shrink: 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M4 10l4 4 8-8' stroke='%23B8935A' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center; }
+  .price-cta { display: block; width: 100%; text-align: center; padding: 0.9rem 1.5rem; border-radius: 8px; font-size: 0.92rem; font-weight: 500; transition: all 220ms; }
+  .price-cta.outline { border: 1px solid var(--ink); color: var(--ink); }
+  .price-cta.outline:hover { background: var(--ink); color: var(--cream); }
+  .price-cta.primary { background: var(--wine); color: #fff; box-shadow: 0 6px 20px rgba(184,53,31,0.28); }
+  .price-cta.primary:hover { box-shadow: 0 10px 28px rgba(184,53,31,0.4); transform: translateY(-2px); }
+
+  /* === FAQ === */
+  .faq-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border-radius: 12px; overflow: hidden; margin-top: 3rem; border: 1px solid var(--border); }
+  .faq-item { background: #FFFCF6; }
+  .faq-q { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 1.75rem; cursor: pointer; font-size: 1.02rem; font-weight: 500; letter-spacing: -0.01em; user-select: none; transition: background 220ms; }
+  .faq-q:hover { background: #FAF6EE; }
+  .faq-icon { width: 24px; height: 24px; position: relative; flex-shrink: 0; transition: transform 360ms cubic-bezier(0.22,1,0.36,1); }
+  .faq-icon::before, .faq-icon::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--ink); }
+  .faq-icon::before { width: 12px; height: 1.5px; }
+  .faq-icon::after { width: 1.5px; height: 12px; transition: transform 320ms ease; }
+  .faq-item.open .faq-icon::after { transform: translate(-50%, -50%) rotate(90deg); opacity: 0; }
+  .faq-item.open .faq-icon { transform: rotate(180deg); }
+  .faq-a { padding: 0 1.75rem; max-height: 0; overflow: hidden; transition: max-height 460ms cubic-bezier(0.22,1,0.36,1), padding 360ms; font-size: 0.95rem; color: var(--muted); line-height: 1.7; }
+  .faq-item.open .faq-a { max-height: 240px; padding: 0 1.75rem 1.75rem; }
+
+  /* === FINAL CTA === */
+  .final { padding: 9rem 4rem; max-width: 1280px; margin: 0 auto; text-align: center; position: relative; z-index: 5; }
+  .final::before { content: 'Берёзка'; position: absolute; font-size: clamp(8rem, 16vw, 14rem); font-weight: 600; color: rgba(184,147,90,0.07); line-height: 0.7; top: 30%; left: 50%; transform: translate(-50%, -50%); z-index: -1; pointer-events: none; letter-spacing: -0.04em; user-select: none; }
+  .final-title { font-size: clamp(2.6rem, 6vw, 4.5rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 600; margin-bottom: 1.75rem; position: relative; }
+  .final-title em { color: var(--gold); font-style: italic; }
+  .final-text { font-size: 1.15rem; line-height: 1.6; color: var(--muted); max-width: 540px; margin: 0 auto 2.5rem; }
+  .final .cta-primary { padding: 1.2rem 2.4rem; font-size: 1rem; }
+
+  /* === FOOTER === */
+  .footer { padding: 4rem; max-width: 1280px; margin: 0 auto; border-top: 1px solid var(--gold-dim); position: relative; z-index: 5; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+  .footer-brand { font-size: 0.875rem; line-height: 1.6; color: var(--muted); max-width: 320px; margin-top: 1rem; }
+  .footer-col h4 { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); margin-bottom: 1.2rem; }
+  .footer-col a { display: block; font-size: 0.88rem; color: var(--muted); padding: 0.32rem 0; transition: color 180ms; }
+  .footer-col a:hover { color: var(--ink); }
+  .footer-bottom { display: flex; justify-content: space-between; padding-top: 2rem; border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--muted-2); flex-wrap: wrap; gap: 1rem; }
+
+  @media (max-width: 900px) {
+    .nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .hero, .hero-preview, .section, .stats-section, .about-name, .final, .footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .preview-stage { grid-template-columns: 1fr; gap: 1rem; }
+    .conn { display: none; }
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .steps-grid, .servers-grid, .pricing-grid { grid-template-columns: 1fr; }
+    .compare-table { grid-template-columns: 1fr; }
+    .feature-row, .about-name-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .feature-row:nth-child(even) > :first-child { order: 0; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- CYBER-LEAF SVG: geometric leaf body + circuit-trace internal veins + PCB-pad dots -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="leaf" viewBox="0 0 60 80">
+      <!-- Geometric leaf silhouette (angular, not curved) -->
+      <path d="M30 4 L 12 22 L 6 38 L 8 56 L 22 72 L 30 76 L 38 72 L 52 56 L 54 38 L 48 22 Z"
+            fill="rgba(184,147,90,0.06)"
+            stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+      <!-- Central trace (main vein) -->
+      <line x1="30" y1="6" x2="30" y2="74" stroke="currentColor" stroke-width="1.1"/>
+      <!-- Right-side circuit traces (right-angle / orthogonal — PCB style) -->
+      <g stroke="currentColor" stroke-width="0.9" fill="none" stroke-linecap="round" stroke-linejoin="miter">
+        <polyline points="30,18 40,18 40,26"/>
+        <polyline points="30,30 44,30 44,42"/>
+        <polyline points="30,42 46,42 46,52"/>
+        <polyline points="30,54 42,54 42,62"/>
+      </g>
+      <!-- Left-side mirrored -->
+      <g stroke="currentColor" stroke-width="0.9" fill="none" stroke-linecap="round" stroke-linejoin="miter">
+        <polyline points="30,18 20,18 20,26"/>
+        <polyline points="30,30 16,30 16,42"/>
+        <polyline points="30,42 14,42 14,52"/>
+        <polyline points="30,54 18,54 18,62"/>
+      </g>
+      <!-- Terminal nodes (PCB pads) — gold-filled circles at branch ends -->
+      <g fill="currentColor">
+        <circle cx="40" cy="26" r="1.6"/>
+        <circle cx="44" cy="42" r="1.6"/>
+        <circle cx="46" cy="52" r="1.6"/>
+        <circle cx="42" cy="62" r="1.6"/>
+        <circle cx="20" cy="26" r="1.6"/>
+        <circle cx="16" cy="42" r="1.6"/>
+        <circle cx="14" cy="52" r="1.6"/>
+        <circle cx="18" cy="62" r="1.6"/>
+      </g>
+      <!-- Apex nodes -->
+      <g fill="currentColor">
+        <circle cx="30" cy="4" r="2"/>
+        <circle cx="30" cy="76" r="2"/>
+      </g>
+      <!-- Tiny diagonal connectors for "circuit feel" -->
+      <g stroke="currentColor" stroke-width="0.5" opacity="0.55" fill="none">
+        <line x1="40" y1="26" x2="46" y2="32"/>
+        <line x1="20" y1="26" x2="14" y2="32"/>
+        <line x1="42" y1="62" x2="36" y2="68"/>
+        <line x1="18" y1="62" x2="24" y2="68"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="scroll-progress" id="scrollProgress" style="width:0%"></div>
+
+<div class="mesh">
+  <div class="blob blob-1"></div><div class="blob blob-2"></div>
+  <div class="blob blob-3"></div><div class="blob blob-4"></div>
+</div>
+<div class="grain"></div>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a class="brand" href="#">
+    <span class="brand-mark">Б</span>
+    <span>Cyber Berezka</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="#how">Как работает</a>
+    <a class="nav-link" href="#servers">Серверы</a>
+    <a class="nav-link" href="#about">О названии</a>
+    <a class="nav-link" href="#pricing">Тарифы</a>
+    <a class="nav-link" href="#faq">Вопросы</a>
+  </div>
+  <a class="nav-cta" href="#">Войти</a>
+</nav>
+
+<!-- HERO CENTERED -->
+<header class="hero">
+  <div class="eyebrow">
+    <span class="eyebrow-line"></span>
+    <span>Защищённое соединение · с 2026</span>
+    <span class="eyebrow-line"></span>
+  </div>
+  <h1 class="headline">
+    <span class="line"><span class="word" style="animation-delay:0.3s">Кибер</span> <span class="word" style="animation-delay:0.45s">встречает</span></span>
+    <span class="line"><span class="word accent" style="animation-delay:0.6s">берёзу.</span></span>
+  </h1>
+  <p class="lead">
+    Шифрование интернета по российским правилам, на современных протоколах.
+    Серверы в Латвии, Нидерландах, Германии — спокойствие, проверенное вашим браузером.
+  </p>
+  <div class="cta-row">
+    <a class="cta-primary" id="ctaMagnet" href="#">
+      Начать защиту
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="cta-secondary" href="#how">Как это работает <span class="arrow">→</span></a>
+  </div>
+  <div class="trust">
+    <div class="trust-item"><span class="trust-value" data-count="3">0 стран</span><span class="trust-label">собственная инфраструктура</span></div>
+    <div class="trust-item"><span class="trust-value">VLESS-Reality</span><span class="trust-label">современный протокол</span></div>
+    <div class="trust-item"><span class="trust-value"><span class="live-dot"></span>3/3 ноды</span><span class="trust-label">онлайн прямо сейчас</span></div>
+  </div>
+</header>
+
+<!-- HERO PREVIEW with clean div connections -->
+<section class="hero-preview" id="previewStage">
+  <div class="preview-stage">
+    <div class="node-card tilt" data-speed="-1">
+      <div class="nc-head">
+        <div style="display:flex;align-items:center;gap:0.7rem">
+          <div class="nc-flag">🇱🇻</div>
+          <div><div class="nc-country">Латвия · Рига</div><div class="nc-city">212.74.231.217</div></div>
+        </div>
+        <span class="nc-status"><span class="nc-status-dot"></span>Online</span>
+      </div>
+      <div class="nc-bar"><div class="nc-bar-fill" style="--fill:0.78"></div></div>
+      <div class="nc-meta">
+        <div class="nc-meta-item"><span class="nc-meta-label">Ping</span><span class="nc-meta-value">42 мс</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Полоса</span><span class="nc-meta-value">1 Гбит/с</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Нагрузка</span><span class="nc-meta-value">78%</span></div>
+      </div>
+    </div>
+
+    <div class="node-card tilt" data-speed="2">
+      <div class="nc-head">
+        <div style="display:flex;align-items:center;gap:0.7rem">
+          <div class="nc-flag">🇳🇱</div>
+          <div><div class="nc-country">Нидерланды</div><div class="nc-city">Амстердам · 194.87.208.112</div></div>
+        </div>
+        <span class="nc-status"><span class="nc-status-dot"></span>Online</span>
+      </div>
+      <div class="nc-bar"><div class="nc-bar-fill" style="--fill:0.42"></div></div>
+      <div class="nc-meta">
+        <div class="nc-meta-item"><span class="nc-meta-label">Ping</span><span class="nc-meta-value">58 мс</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Полоса</span><span class="nc-meta-value">1 Гбит/с</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Нагрузка</span><span class="nc-meta-value">42%</span></div>
+      </div>
+    </div>
+
+    <div class="node-card tilt" data-speed="-1">
+      <div class="nc-head">
+        <div style="display:flex;align-items:center;gap:0.7rem">
+          <div class="nc-flag">🇩🇪</div>
+          <div><div class="nc-country">Германия</div><div class="nc-city">Франкфурт · Hetzner</div></div>
+        </div>
+        <span class="nc-status"><span class="nc-status-dot"></span>Online</span>
+      </div>
+      <div class="nc-bar"><div class="nc-bar-fill" style="--fill:0.61"></div></div>
+      <div class="nc-meta">
+        <div class="nc-meta-item"><span class="nc-meta-label">Ping</span><span class="nc-meta-value">47 мс</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Полоса</span><span class="nc-meta-value">1 Гбит/с</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Нагрузка</span><span class="nc-meta-value">61%</span></div>
+      </div>
+    </div>
+
+    <!-- Uniform connection lines + flying paper planes between server cards -->
+    <div class="conn conn-1">
+      <svg class="plane" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22 2 L2 11 L10 13 L12 21 L22 2 Z" opacity="0.95"/>
+        <path d="M10 13 L22 2" stroke="rgba(0,0,0,0.18)" stroke-width="0.7" fill="none"/>
+      </svg>
+    </div>
+    <div class="conn conn-2">
+      <svg class="plane" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22 2 L2 11 L10 13 L12 21 L22 2 Z" opacity="0.95"/>
+        <path d="M10 13 L22 2" stroke="rgba(0,0,0,0.18)" stroke-width="0.7" fill="none"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<section class="marquee">
+  <div class="marquee-track">
+    <span class="marquee-item">Шифрование</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">Приватность</span><span class="marquee-dot"></span>
+    <span class="marquee-item">Скорость</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">Без логов</span><span class="marquee-dot"></span>
+    <span class="marquee-item">3 страны</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">VLESS-Reality</span><span class="marquee-dot"></span>
+    <span class="marquee-item">Шифрование</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">Приватность</span><span class="marquee-dot"></span>
+    <span class="marquee-item">Скорость</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">Без логов</span><span class="marquee-dot"></span>
+    <span class="marquee-item">3 страны</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">VLESS-Reality</span><span class="marquee-dot"></span>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat reveal" style="--i:0"><div class="stat-num" data-counter="3"><span>3</span><span class="unit">страны</span></div><div class="stat-label">собственная инфраструктура</div></div>
+    <div class="stat reveal reveal-delay-1" style="--i:1"><div class="stat-num" data-counter="99.9"><span>99.9</span><span class="unit">%</span></div><div class="stat-label">аптайм за квартал</div></div>
+    <div class="stat reveal reveal-delay-2" style="--i:2"><div class="stat-num" data-counter="1"><span>1</span><span class="unit">Гбит/с</span></div><div class="stat-label">пропускная способность ноды</div></div>
+    <div class="stat reveal reveal-delay-3" style="--i:3"><div class="stat-num">0</div><div class="stat-label">записанных логов трафика</div></div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-inner"></div></div>
+
+<!-- ABOUT NAME -->
+<section class="about-name" id="about">
+  <div class="about-name-bg-letter">Б</div>
+  <div class="about-name-grid">
+    <div class="about-art tilt">
+      <svg class="single-leaf" viewBox="0 0 60 80" style="color:#966D40"><use href="#leaf"/></svg>
+      <div class="leaf-meta"><span>Betula Cybera · 2026</span><span>specimen 01</span></div>
+    </div>
+    <div>
+      <div class="section-tag reveal"><span class="section-tag-line"></span><span>О названии</span></div>
+      <h2 class="reveal reveal-delay-1">«Берёзка» — это <em>не ностальгия</em>.<br>Это спокойствие.</h2>
+      <p class="reveal reveal-delay-2">
+        Берёза в русской культуре — дерево границы между «здесь» и «снаружи». Тонкая кора скрывает структуру: что внутри — не видно, но всё работает. Так же и наш сервис: <strong>трафик идёт через ноду</strong>, провайдер видит только зашифрованное соединение.
+      </p>
+      <p class="reveal reveal-delay-3">
+        «Кибер» добавляет современный протокол VLESS-Reality, ноды в трёх странах, ключи на собственное устройство. Но философия остаётся: <strong>не привлекать к себе внимания</strong>, работать незаметно.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-inner"></div></div>
+
+<!-- STEPS -->
+<section class="section" id="how">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Три шага</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Подключение за минуту,<br>без лишних программ.</h2>
+  <p class="lead reveal reveal-delay-2" style="opacity:0;animation:none;margin:0">
+    Регистрация по email, ключ выдаётся автоматически после подтверждения. Импорт в любой клиент по ссылке или QR-коду.
+  </p>
+  <div class="steps-grid">
+    <div class="step tilt reveal reveal-delay-1">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#1A1818" stroke-width="2"/><path d="M3 8l9 6 9-6" stroke="#1A1818" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="step-number">Шаг 1</div>
+      <h3 class="step-title">Регистрация</h3>
+      <p class="step-text">Введите email, подтвердите его и заполните короткую анкету. Доступ выдаётся в течение суток после ручной проверки.</p>
+    </div>
+    <div class="step tilt reveal reveal-delay-2">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="9" width="16" height="11" rx="1.5" stroke="#1A1818" stroke-width="2"/><path d="M8 9V6a4 4 0 018 0v3" stroke="#1A1818" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="step-number">Шаг 2</div>
+      <h3 class="step-title">Получение ключа</h3>
+      <p class="step-text">В кабинете создайте именованный ключ, привязанный к одной из доступных стран. Скачайте конфиг или отсканируйте QR.</p>
+    </div>
+    <div class="step tilt reveal reveal-delay-3">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#1A1818" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step-number">Шаг 3</div>
+      <h3 class="step-title">Подключение</h3>
+      <p class="step-text">Импортируйте ключ в v2RayTun, Hiddify или другой совместимый клиент. Один клик — и соединение защищено.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-inner"></div></div>
+
+<!-- SERVERS -->
+<section class="section" id="servers">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Серверы</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Три страны.<br>Свои ноды, не аренда.</h2>
+  <p class="lead reveal reveal-delay-2" style="opacity:0;animation:none;margin:0">
+    Все серверы развернуты у проверенных datacenter-провайдеров. Не у третьих лиц, не reseller.
+  </p>
+  <div class="servers-grid">
+    <div class="server-card tilt reveal reveal-delay-1">
+      <div class="server-flag">🇱🇻</div><div class="server-country">Латвия</div><div class="server-city">Рига · 212.74.231.217</div>
+      <div class="server-stat"><span class="server-stat-label">Протокол</span><span class="server-stat-value">VLESS-Reality</span></div>
+      <div class="server-stat"><span class="server-stat-label">Полоса</span><span class="server-stat-value">1 Гбит/с</span></div>
+      <div class="server-stat"><span class="server-stat-label">Datacenter</span><span class="server-stat-value">Beget</span></div>
+      <span class="server-status"><span class="server-status-dot"></span>Онлайн · 42 мс</span>
+    </div>
+    <div class="server-card tilt reveal reveal-delay-2">
+      <div class="server-flag">🇳🇱</div><div class="server-country">Нидерланды</div><div class="server-city">Амстердам · 194.87.208.112</div>
+      <div class="server-stat"><span class="server-stat-label">Протокол</span><span class="server-stat-value">VLESS-Reality</span></div>
+      <div class="server-stat"><span class="server-stat-label">Полоса</span><span class="server-stat-value">1 Гбит/с</span></div>
+      <div class="server-stat"><span class="server-stat-label">Datacenter</span><span class="server-stat-value">TimeWeb</span></div>
+      <span class="server-status"><span class="server-status-dot"></span>Онлайн · 58 мс</span>
+    </div>
+    <div class="server-card tilt reveal reveal-delay-3">
+      <div class="server-flag">🇩🇪</div><div class="server-country">Германия</div><div class="server-city">Франкфурт · 159.69.198.143</div>
+      <div class="server-stat"><span class="server-stat-label">Протокол</span><span class="server-stat-value">VLESS-Reality</span></div>
+      <div class="server-stat"><span class="server-stat-label">Полоса</span><span class="server-stat-value">1 Гбит/с</span></div>
+      <div class="server-stat"><span class="server-stat-label">Datacenter</span><span class="server-stat-value">Hetzner</span></div>
+      <span class="server-status"><span class="server-status-dot"></span>Онлайн · 47 мс</span>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Возможности</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Свойства, которые<br>работают молча.</h2>
+  <div style="height: 3.5rem"></div>
+
+  <div class="feature-row reveal">
+    <div>
+      <div class="feature-eyebrow">Шифрование</div>
+      <h3 class="feature-title">Reality protocol — современнее, чем «обычный VPN»</h3>
+      <p class="feature-text">VLESS-Reality маскирует ваш трафик под обычное HTTPS-соединение с настоящим сайтом. Никакой DPI не отличит.</p>
+      <ul class="feature-list">
+        <li>TLS 1.3 + Reality fingerprint</li>
+        <li>Подделка под www.microsoft.com на уровне TLS-handshake</li>
+        <li>Поддержка XTLS-Vision для производительности</li>
+      </ul>
+    </div>
+    <div class="feature-art tilt">
+      <div class="term">
+        <span class="term-line"><span class="term-prompt">$ </span>curl --resolve www.microsoft.com:443:212.74.231.217</span>
+        <span class="term-line term-output">HTTP/2 200</span>
+        <span class="term-line term-output">server: microsoft-iis/10.0</span>
+        <span class="term-line term-output">x-trace-id: <span style="color:var(--gold)">A1B2C3D4</span></span>
+        <span class="term-line"><span class="term-prompt">$ </span><span class="term-typing">tcpdump -i any port 8443</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="feature-row reveal">
+    <div>
+      <div class="feature-eyebrow">Управление</div>
+      <h3 class="feature-title">Личный кабинет — без перегруза</h3>
+      <p class="feature-text">Один список ключей. Каждый — для своего устройства. Копирование, QR-код, отзыв — в одном клике.</p>
+      <ul class="feature-list">
+        <li>До 3 ключей одновременно</li>
+        <li>Привязка ключа к одной стране</li>
+        <li>Отзыв ключа без влияния на остальные</li>
+      </ul>
+    </div>
+    <div class="feature-art tilt">
+      <div class="cab-card">
+        <div class="cab-card-head">
+          <div>
+            <div class="cab-card-title">iPhone · 🇱🇻 Латвия</div>
+            <div class="cab-card-sub">Создан 24.05.2026 · Использовался сегодня в 14:32</div>
+          </div>
+          <span class="cab-badge">Активен</span>
+        </div>
+        <div class="cab-key">vless://4d37c9e0-2f1f-4b7e-9100-4c0667eac7a6@212.74.231.217:8443?...</div>
+        <div class="cab-actions">
+          <button class="cab-btn">Скопировать</button>
+          <button class="cab-btn outline">QR-код</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON -->
+<section class="compare-section">
+  <div class="bark-pattern"></div>
+  <div class="compare-inner">
+    <div class="section-tag reveal"><span class="section-tag-line"></span><span>Сравнение</span></div>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:left">Берёзка против<br>«обычного VPN».</h2>
+    <p class="lead reveal reveal-delay-2" style="opacity:0;animation:none;margin:0;text-align:left">
+      Без маркетинговых обещаний. Технические факты — и то, что эти факты значат для пользователя.
+    </p>
+    <div class="compare-table reveal reveal-delay-3">
+      <div class="ct-cell ct-head"><div><div class="col-tag">Характеристика</div></div></div>
+      <div class="ct-cell ct-head"><div><div class="col-tag" style="color:var(--gold)">Cyber Berezka</div><div style="font-size:1rem">наш сервис</div></div></div>
+      <div class="ct-cell ct-head"><div><div class="col-tag" style="color:var(--muted-2)">Обычный</div><div style="font-size:1rem">типичный VPN</div></div></div>
+      <div class="ct-cell ct-row-label">Протокол шифрования</div>
+      <div class="ct-cell ct-our highlight"><strong>VLESS-Reality (2024+)</strong></div>
+      <div class="ct-cell ct-other">OpenVPN / WireGuard</div>
+      <div class="ct-cell ct-row-label">Обнаружение DPI</div>
+      <div class="ct-cell ct-our ct-yes highlight">Маскируется под HTTPS</div>
+      <div class="ct-cell ct-other ct-no">Видим как VPN-трафик</div>
+      <div class="ct-cell ct-row-label">Логи трафика</div>
+      <div class="ct-cell ct-our ct-yes highlight">Не сохраняются</div>
+      <div class="ct-cell ct-other">Зависит от провайдера</div>
+      <div class="ct-cell ct-row-label">Серверы</div>
+      <div class="ct-cell ct-our highlight"><strong>Свои · 3 страны</strong></div>
+      <div class="ct-cell ct-other">Часто аренда/reseller</div>
+      <div class="ct-cell ct-row-label">Ключи на устройство</div>
+      <div class="ct-cell ct-our ct-yes highlight">До 3 отдельных ключей</div>
+      <div class="ct-cell ct-other">1 общий аккаунт</div>
+      <div class="ct-cell ct-row-label">Юр.прозрачность</div>
+      <div class="ct-cell ct-our ct-yes highlight">ИП РФ, оферта, ОГРНИП</div>
+      <div class="ct-cell ct-other ct-no">Часто оффшор</div>
+      <div class="ct-cell ct-row-label">Цена за год</div>
+      <div class="ct-cell ct-our highlight"><strong>3 480 ₽</strong></div>
+      <div class="ct-cell ct-other">4 000–6 000 ₽</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-inner"></div></div>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Тарифы</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Один тариф. Без скрытых условий.</h2>
+  <p class="lead reveal reveal-delay-2" style="opacity:0;animation:none;margin:0">Платите за месяц, полгода или год. Чем дольше — тем выгоднее.</p>
+  <div class="pricing-grid">
+    <div class="price-card tilt reveal reveal-delay-1">
+      <div class="price-name">Месяц</div>
+      <div class="price-amount"><span class="price-num">490</span><span class="price-per">₽/месяц</span></div>
+      <p class="price-desc">Попробовать сервис без обязательств. Отказ в любой момент.</p>
+      <ul class="price-features"><li>До 3 устройств</li><li>3 страны на выбор</li><li>Безлимитный трафик</li></ul>
+      <a class="price-cta outline" href="#">Выбрать</a>
+    </div>
+    <div class="price-card featured reveal reveal-delay-2">
+      <div class="price-name">Полгода</div>
+      <div class="price-amount"><span class="price-num">390</span><span class="price-per">₽/месяц</span></div>
+      <p class="price-desc">Экономия 20%. Идеальный баланс цены и обязательств.</p>
+      <ul class="price-features"><li>Всё из «Месяца»</li><li>Приоритетная поддержка</li><li>Доступ к beta-серверам</li></ul>
+      <a class="price-cta primary" href="#">Выбрать</a>
+    </div>
+    <div class="price-card tilt reveal reveal-delay-3">
+      <div class="price-name">Год</div>
+      <div class="price-amount"><span class="price-num">290</span><span class="price-per">₽/месяц</span></div>
+      <p class="price-desc">Максимальная экономия — 40%. Для тех, кто уверен.</p>
+      <ul class="price-features"><li>Всё из «Полгода»</li><li>Гарантированная цена 12 месяцев</li><li>+1 дополнительный ключ</li></ul>
+      <a class="price-cta outline" href="#">Выбрать</a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-inner"></div></div>
+
+<!-- FAQ -->
+<section class="section" id="faq" style="max-width: 880px">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Вопросы</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Что важно знать?</h2>
+  <div class="faq-list reveal reveal-delay-2">
+    <div class="faq-item"><div class="faq-q"><span>Это законно? Что значит «защищённое соединение»?</span><span class="faq-icon"></span></div><div class="faq-a">Cyber Berezka шифрует ваше интернет-соединение, защищая данные в публичных сетях (кафе, аэропорты, отели) и от слежки на уровне провайдера. Мы не позиционируем себя как сервис для обхода блокировок и не оказываем такие услуги.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>Какие приложения поддерживаются?</span><span class="faq-icon"></span></div><div class="faq-a">Любой клиент с поддержкой VLESS-Reality: v2RayTun (iOS, Android, macOS, Windows), Hiddify, NekoBox, V2Box. Импорт по ссылке подписки или QR-коду.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>Сохраняете ли вы логи моей активности?</span><span class="faq-icon"></span></div><div class="faq-a">Нет. На наших серверах не настроено никакой записи о посещаемых сайтах, объёме переданных данных и метаданных трафика. Хранится только время последнего использования ключа.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>Можно ли использовать на нескольких устройствах?</span><span class="faq-icon"></span></div><div class="faq-a">Да, до 3 одновременных подключений на один аккаунт. Каждое устройство получает собственный именованный ключ с возможностью отзыва.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>Как происходит оплата?</span><span class="faq-icon"></span></div><div class="faq-a">Оплата российской картой через ЮKassa. Подписка не продлевается автоматически — после окончания периода вы получаете напоминание и продлеваете вручную.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>А почему «Берёзка»?</span><span class="faq-icon"></span></div><div class="faq-a">Берёза — тонкое, спокойное и узнаваемое дерево. Мы хотели бренд, который чувствуется «своим» для русскоязычной аудитории и не пытается выглядеть как ещё один безликий «GuardVPN». «Кибер» добавляет современный технологический контекст.</div></div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final">
+  <h2 class="final-title reveal">Готовы <em>начать</em>?</h2>
+  <p class="final-text reveal reveal-delay-1">Регистрация занимает минуту. Первый ключ — через час после подтверждения email.</p>
+  <div class="reveal reveal-delay-2" style="display:inline-block">
+    <a class="cta-primary" href="#">Создать аккаунт<svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-grid">
+    <div>
+      <div class="brand"><span class="brand-mark">Б</span><span>Cyber Berezka</span></div>
+      <p class="footer-brand">Защищённое соединение для повседневной работы в интернете. Без логов, без рекламы, без сложных настроек.</p>
+    </div>
+    <div class="footer-col"><h4>Продукт</h4><a href="#features">Возможности</a><a href="#servers">Серверы</a><a href="#pricing">Тарифы</a><a href="#faq">Вопросы</a></div>
+    <div class="footer-col"><h4>Документы</h4><a href="#">Условия использования</a><a href="#">Политика конфиденциальности</a><a href="#">Оферта</a></div>
+    <div class="footer-col"><h4>Связь</h4><a href="#">Telegram-поддержка</a><a href="#">Email</a></div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Cyber Berezka. ИП Иванов И.И., ОГРНИП 000000000000000</span>
+    <span>Сделано с вниманием к деталям</span>
+  </div>
+</footer>
+
+<script>
+  // === Stagger-load node-cards (opacity fade-in only, leaves transform free for tilt) ===
+  const nodeCards = document.querySelectorAll('.node-card');
+  nodeCards.forEach((card, i) => {
+    setTimeout(() => card.classList.add('loaded'), 1600 + i * 200);
+  });
+
+  // === Scroll progress + nav + parallax preview ===
+  const progress = document.getElementById('scrollProgress');
+  const nav = document.getElementById('nav');
+  const previewStage = document.getElementById('previewStage');
+  function onScroll() {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = Math.min(100, (window.scrollY / max) * 100);
+    progress.style.width = pct + '%';
+    nav.classList.toggle('scrolled', window.scrollY > 30);
+    if (previewStage) {
+      const rect = previewStage.getBoundingClientRect();
+      const center = rect.top + rect.height / 2;
+      const offset = (window.innerHeight / 2 - center) * 0.08;
+      previewStage.querySelectorAll('[data-speed]').forEach(card => {
+        const speed = parseFloat(card.dataset.speed);
+        // store parallax in CSS variable so tilt JS doesn't overwrite it
+        card.style.setProperty('--parallax-y', (offset * speed) + 'px');
+      });
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // === Reveal observer ===
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        const section = entry.target.closest('.section, .stats-section, .about-name, .compare-section');
+        if (section) section.classList.add('in-view');
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -80px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  document.querySelectorAll('.section, .stats-section, .about-name, .compare-section').forEach(s => io.observe(s));
+
+  function animateText(el, target) {
+    const start = performance.now();
+    const dur = 1200;
+    function step(now) {
+      const t = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.floor(eased * target) + ' стран' + (target === 1 ? 'а' : '');
+      if (t < 1) requestAnimationFrame(step);
+      else el.textContent = target + ' страны';
+    }
+    requestAnimationFrame(step);
+  }
+  document.querySelectorAll('[data-count]').forEach(el => { setTimeout(() => animateText(el, parseInt(el.dataset.count)), 1500); });
+
+  const statsIo = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.querySelectorAll('[data-counter]').forEach(el => {
+          const target = parseFloat(el.dataset.counter);
+          const numEl = el.querySelector('span:first-child');
+          const start = performance.now();
+          const dur = 1500;
+          function step(now) {
+            const t = Math.min((now - start) / dur, 1);
+            const eased = 1 - Math.pow(1 - t, 3);
+            const val = eased * target;
+            numEl.textContent = target % 1 !== 0 ? val.toFixed(1) : Math.floor(val);
+            if (t < 1) requestAnimationFrame(step);
+            else numEl.textContent = target;
+          }
+          requestAnimationFrame(step);
+        });
+        statsIo.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+  const statsSection = document.querySelector('.stats-section');
+  if (statsSection) statsIo.observe(statsSection);
+
+  // === Magnetic CTA ===
+  const magnet = document.getElementById('ctaMagnet');
+  if (magnet) {
+    magnet.addEventListener('mousemove', (e) => {
+      const rect = magnet.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      magnet.style.transform = `translate(${x * 0.18}px, ${y * 0.25}px)`;
+    });
+    magnet.addEventListener('mouseleave', () => { magnet.style.transform = ''; });
+  }
+
+  // === Subtle tilt on cards (mouse-follow with perspective) ===
+  document.querySelectorAll('.tilt').forEach(card => {
+    let raf = null;
+    // node-cards in hero preview get stronger tilt to feel more alive
+    const isNode = card.classList.contains('node-card');
+    const maxRot = isNode ? 6 : 3.5;
+    const maxLift = isNode ? 6 : 3;
+    function applyTilt(e) {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+      const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+      const rotY = x * maxRot;
+      const rotX = -y * maxRot;
+      const tY = -maxLift + (-y * 2);
+      const parallaxY = card.style.getPropertyValue('--parallax-y') || '0px';
+      card.style.transform = `translateY(calc(${parallaxY} + ${tY}px)) perspective(1200px) rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+    }
+    card.addEventListener('mousemove', (e) => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => applyTilt(e));
+    });
+    card.addEventListener('mouseleave', () => {
+      const parallaxY = card.style.getPropertyValue('--parallax-y') || '0px';
+      card.style.transform = `translateY(${parallaxY})`;
+    });
+  });
+
+  // === FAQ accordion ===
+  document.querySelectorAll('.faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+      const item = q.closest('.faq-item');
+      const opened = document.querySelector('.faq-item.open');
+      if (opened && opened !== item) opened.classList.remove('open');
+      item.classList.toggle('open');
+    });
+  });
+</script>
+
+</body>
+</html>
