@@ -139,7 +139,11 @@ def cmd_apply_protection_modes(client, template_file):
     template_json = template_payload["templateJson"]
     template_type = template_payload.get("templateType", "XRAY_JSON")
 
-    # 1. Subscription template — idempotent by name
+    # 1. Subscription template — idempotent by name.
+    # NOTE: POST /api/subscription-templates silently drops some routing.rules
+    # (only `protocol`-typed rules survive). We always follow up with PATCH so
+    # the stored templateJson exactly matches our file regardless of whether
+    # the template existed before.
     templates = client.list_subscription_templates()
     smart_template = next(
         (t for t in templates if t.get("name") == template_name and t.get("templateType") == template_type),
@@ -151,6 +155,8 @@ def cmd_apply_protection_modes(client, template_file):
     else:
         print(f"Skip subscription-template '{template_name}' — already exists uuid={smart_template.get('uuid')}")
     smart_template_uuid = smart_template["uuid"]
+    client.update_subscription_template(smart_template_uuid, template_json)
+    print(f"Synced templateJson body for '{template_name}' (POST drops some rules; PATCH preserves all)")
 
     # 2. Squads — find Default, create Mode-Smart if missing
     squads = client.list_squads()

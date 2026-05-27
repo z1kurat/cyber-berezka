@@ -126,6 +126,15 @@ class RemnawaveClient:
             "templateJson": template_json,
         })
 
+    def update_subscription_template(self, uuid: str, template_json: dict) -> dict:
+        """PATCH the template body. Used by apply.py because POST silently
+        drops some `routing.rules` (only `protocol` rules survive) — PATCH
+        preserves the full ruleset."""
+        return self.patch("/api/subscription-templates", json={
+            "uuid": uuid,
+            "templateJson": template_json,
+        })
+
     # --- internal squads (write) ---
     def create_squad(self, name: str, inbounds: list[str]) -> dict:
         """Create an internal squad bound to the given inbound UUIDs.
