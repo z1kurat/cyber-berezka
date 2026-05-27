@@ -18,7 +18,11 @@
 - 2 squad'а (Default-Squad → «Полная», Mode-Smart → «Умная»), 6 host'ов (3 full + 3 smart с одинаковыми `address:port`), subscription-template `smart_routing` с `geoip:ru`/`geosite:category-{gov,bank,media}-ru` → direct.
 - Toggle на `/cabinet` (карточка наверху).
 
-**Известное ограничение:** базовый subscription URL отдаёт base64-flat в обоих режимах. Routing-rules применяются только при доступе к `<sub_url>/json`. Это нужно либо отрабатывать в клиенте (sing-box SFA/SFI получают JSON автоматически по UA), либо документировать для v2RayTun/Hiddify пользователей. Открыт **подбэклог** «Smart-mode URL exposure» — показать `/json` вариант ссылки в кабинете при `protection_mode='smart'`, либо переписать subscription-flow через site-proxy (Option B из спеки).
+**Status 2026-05-27 (final):** Реализован **site-proxy (Option B)** — endpoint `/api/sub/<short_uuid>` на нашем FastAPI выбирает upstream (`<remnawave_sub_url>` или `/json` суффикс) на основе `user.protection_mode`. URL подписки стабильный, формат меняется автоматически при toggle. Клиенту достаточно refresh подписки — URL не меняется.
+
+**Замечен баг Remnawave:** POST `/api/subscription-templates` отбрасывает routing rules с типами `ip` и `domain` (оставляет только `protocol`). PATCH сохраняет всё. `apply.py apply-protection-modes` делает POST + PATCH для гарантированной синхронизации body.
+
+**Существующим пользователям:** старый Remnawave URL `admin.<domain>/api/sub/<short_uuid>` продолжает работать (в любом режиме). Чтобы получить Умный режим — необходимо повторно импортировать в VPN-клиент новый URL `<site_host>/api/sub/<short_uuid>` (показывается в `/cabinet/keys`).
 
 
 Трафик до российских ресурсов (geoip:ru + geosite:category-gov-ru / category-bank-ru / category-media-ru) маршрутизировать **в обход** Reality-туннеля, через `outbound: direct` на стороне клиента. Остальной трафик — через нашу ноду.
