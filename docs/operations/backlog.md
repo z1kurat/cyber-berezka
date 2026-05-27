@@ -12,6 +12,15 @@
 
 ### Кейс 1 — RU-direct routing (приоритет: средний)
 
+**Status 2026-05-27:** **DONE.** Реализовано через Squad-per-mode архитектуру.
+- Spec: `docs/superpowers/specs/2026-05-27-protection-modes-design.md`
+- Plan: `docs/superpowers/plans/2026-05-27-protection-modes.md`
+- 2 squad'а (Default-Squad → «Полная», Mode-Smart → «Умная»), 6 host'ов (3 full + 3 smart с одинаковыми `address:port`), subscription-template `smart_routing` с `geoip:ru`/`geosite:category-{gov,bank,media}-ru` → direct.
+- Toggle на `/cabinet` (карточка наверху).
+
+**Известное ограничение:** базовый subscription URL отдаёт base64-flat в обоих режимах. Routing-rules применяются только при доступе к `<sub_url>/json`. Это нужно либо отрабатывать в клиенте (sing-box SFA/SFI получают JSON автоматически по UA), либо документировать для v2RayTun/Hiddify пользователей. Открыт **подбэклог** «Smart-mode URL exposure» — показать `/json` вариант ссылки в кабинете при `protection_mode='smart'`, либо переписать subscription-flow через site-proxy (Option B из спеки).
+
+
 Трафик до российских ресурсов (geoip:ru + geosite:category-gov-ru / category-bank-ru / category-media-ru) маршрутизировать **в обход** Reality-туннеля, через `outbound: direct` на стороне клиента. Остальной трафик — через нашу ноду.
 
 Зачем:
