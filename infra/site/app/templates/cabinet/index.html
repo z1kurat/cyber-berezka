@@ -17,6 +17,47 @@
     </div>
   </header>
 
+  <section id="protection-mode-card" class="bg-bg-card border-2 border-accent-gold rounded-lg shadow-card p-6 mb-6">
+    {% if request.query_params.get('mode_updated') %}
+      <p class="text-success text-sm mb-3">Режим переключён. Обновите подписку в VPN-клиенте, чтобы применить.</p>
+    {% endif %}
+    <div class="flex items-center justify-between gap-4 mb-2">
+      <div>
+        <div class="font-medium text-base">
+          {% if user.protection_mode == 'smart' %}⚡ Умная защита{% else %}🛡️ Полная защита{% endif %}
+        </div>
+        <div class="text-sm text-text-muted mt-1">
+          {% if user.protection_mode == 'smart' %}Российские сайты — напрямую, остальное — через защищённое соединение.{% else %}Весь интернет-трафик идёт через защищённое соединение.{% endif %}
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <form method="POST" action="/cabinet/protection-mode" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
+          <input type="hidden" name="mode" value="full">
+          <button type="submit"
+                  class="px-4 py-2 rounded-full text-sm {% if user.protection_mode != 'smart' %}bg-bg-main text-accent-goldDk font-medium shadow-sm{% else %}text-text-muted hover:bg-bg-main/60{% endif %}">
+            🛡️ Полная
+          </button>
+        </form>
+        <form method="POST" action="/cabinet/protection-mode" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
+          <input type="hidden" name="mode" value="smart">
+          <button type="submit"
+                  class="px-4 py-2 rounded-full text-sm {% if user.protection_mode == 'smart' %}bg-bg-main text-accent-goldDk font-medium shadow-sm{% else %}text-text-muted hover:bg-bg-main/60{% endif %}">
+            ⚡ Умная
+          </button>
+        </form>
+      </div>
+    </div>
+    <p class="text-xs text-text-muted mt-3 pt-3 border-t border-border-light">
+      {% if user.protection_mode == 'smart' %}
+        Банк-клиенты, госуслуги и российские медиа открываются <strong>напрямую</strong> — без замедления и антифрод-предупреждений. Зарубежные сервисы — через защищённое соединение.
+      {% else %}
+        Все сайты и приложения подключаются <strong>через защищённое соединение</strong>. Российские банк-клиенты и госуслуги могут срабатывать с антифрод-проверкой («вход из необычного места») или открываться медленнее.
+      {% endif %}
+    </p>
+  </section>
+
   <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6 mb-6">
     <h2 class="font-serif text-xl mb-4">Доступные серверы</h2>
     {% include "cabinet/_server_list.html" ignore missing %}
