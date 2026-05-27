@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     )
     remnawave_api_token: str = Field(default="", alias="REMNAWAVE_API_TOKEN")
 
+    # Protection-modes: squad UUIDs (set via apply.py apply-protection-modes)
+    remnawave_squad_full_uuid: str = Field(default="", alias="REMNAWAVE_SQUAD_FULL_UUID")
+    remnawave_squad_smart_uuid: str = Field(default="", alias="REMNAWAVE_SQUAD_SMART_UUID")
+
     # Brevo (transactional email)
     brevo_api_key: str = Field(default="", alias="BREVO_API_KEY")
     brevo_sender_email: str = Field(
