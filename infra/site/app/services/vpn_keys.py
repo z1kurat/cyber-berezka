@@ -10,11 +10,23 @@ import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models.audit_log import AuditLog
 from app.models.user import User
 from app.models.vpn_key import VpnKey
 from app.services.geo import resolve_country
 from app.services.remnawave import RemnawaveAPI
+
+
+def _build_proxied_sub_url(short_uuid: str) -> str:
+    """Subscription URL exposed to the client — proxied through our site.
+
+    Our /api/sub handler picks the upstream format (flat vs JSON) based on
+    `user.protection_mode`, so the URL stays stable across mode toggles.
+    """
+    if not short_uuid:
+        return ""
+    return f"https://{settings.site_host}/api/sub/{short_uuid}"
 
 
 class NoServersInCountry(Exception):
@@ -110,8 +122,7 @@ class VpnKeysService:
             return [], "", []
         servers = await self.list_servers_for_user(user)
         addr_to_srv = {s["address"]: s for s in servers}
-        rw_user = await self.remnawave.get_user(user.remnawave_user_uuid)
-        sub_url = rw_user.get("subscriptionUrl", "")
+        sub_url = _build_proxied_sub_url(user.remnawave_short_uuid or "")
         result = await self.db.execute(
             select(VpnKey).where(VpnKey.user_id == user.id, VpnKey.status == "active")
             .order_by(VpnKey.id.desc())
@@ -132,8 +143,7 @@ class VpnKeysService:
         keys = list(result.scalars())
         if not user.remnawave_user_uuid or not keys:
             return keys, ""
-        rw_user = await self.remnawave.get_user(user.remnawave_user_uuid)
-        return keys, rw_user.get("subscriptionUrl", "")
+        return keys, _build_proxied_sub_url(user.remnawave_short_uuid or "")
 
     async def list_servers_for_user(self, user: User) -> list[dict]:
         """Parse the user's subscription URL into per-server entries.

@@ -11,7 +11,7 @@ from redis.asyncio import Redis
 
 from app.config import settings
 from app.deps import get_redis
-from app.routers import admin, auth, cabinet, landing, legal
+from app.routers import admin, api_sub, auth, cabinet, landing, legal
 from app.routers.landing import render_landing
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -120,5 +120,6 @@ app.include_router(admin.router)
 app.include_router(cabinet.router)
 app.include_router(landing.router)
 app.include_router(legal.router)
+app.include_router(api_sub.router)
 
 # Future routers go here: auth, cabinet, api_sub.
