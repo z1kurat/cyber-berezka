@@ -176,4 +176,4 @@ async def set_protection_mode(
         await ProtectionService(db, rw).set_mode(user, mode)  # type: ignore[arg-type]
     finally:
         await rw.aclose()
-    return RedirectResponse(url="/cabinet?mode_updated=1", status_code=303)
+    return RedirectResponse(url="/cabinet/keys?mode_updated=1", status_code=303)
