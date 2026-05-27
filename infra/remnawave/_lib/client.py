@@ -127,8 +127,13 @@ class RemnawaveClient:
         })
 
     # --- internal squads (write) ---
-    def create_squad(self, name: str) -> dict:
-        return self.post("/api/internal-squads", json={"name": name})
+    def create_squad(self, name: str, inbounds: list[str]) -> dict:
+        """Create an internal squad bound to the given inbound UUIDs.
+
+        Remnawave validates that `inbounds` is a non-empty array of inbound
+        UUIDs — the squad otherwise can't render a working subscription.
+        """
+        return self.post("/api/internal-squads", json={"name": name, "inbounds": inbounds})
 
     # --- hosts (write) ---
     def create_host(self, payload: dict) -> dict:

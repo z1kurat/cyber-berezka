@@ -159,10 +159,16 @@ def cmd_apply_protection_modes(client, template_file):
         print(f"ERROR: Default squad '{DEFAULT_SQUAD_NAME}' not found. Aborting.")
         return 2
     default_squad_uuid = default_squad["uuid"]
+    # Mode-Smart must use the same inbound(s) as Default-Squad — both squads
+    # carry VLESS-Reality traffic; only the client-side routing template differs.
+    default_inbound_uuids = [ib["uuid"] for ib in (default_squad.get("inbounds") or [])]
+    if not default_inbound_uuids:
+        print(f"ERROR: Default squad has no inbounds — cannot derive Mode-Smart inbounds. Aborting.")
+        return 2
 
     smart_squad = next((s for s in squads if s.get("name") == SMART_SQUAD_NAME), None)
     if smart_squad is None:
-        smart_squad = client.create_squad(SMART_SQUAD_NAME)
+        smart_squad = client.create_squad(SMART_SQUAD_NAME, inbounds=default_inbound_uuids)
         print(f"Created squad '{SMART_SQUAD_NAME}' uuid={smart_squad.get('uuid')}")
     else:
         print(f"Skip squad '{SMART_SQUAD_NAME}' — already exists uuid={smart_squad.get('uuid')}")
