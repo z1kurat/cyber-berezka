@@ -3,13 +3,14 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Cookie, Depends, HTTPException, status
+from fastapi import Cookie, Depends, HTTPException, Request, status
 from redis.asyncio import Redis, from_url
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db import get_db
 from app.models.user import User
+from app.security.csrf import verify_csrf
 from app.services.sessions import SessionService
 
 
@@ -46,9 +47,21 @@ async def get_current_user(
     return result.scalar_one_or_none()
 
 
-async def require_user(user: User | None = Depends(get_current_user)) -> User:
+async def require_user(
+    request: Request,
+    user: User | None = Depends(get_current_user),
+) -> User:
     if user is None:
-        raise HTTPException(status_code=status.HTTP_303_SEE_OTHER, headers={"Location": "/auth/login"})
+        accept = request.headers.get("accept", "")
+        if "text/html" in accept.lower():
+            raise HTTPException(
+                status_code=status.HTTP_303_SEE_OTHER,
+                headers={"Location": "/auth/login"},
+            )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="not_authenticated",
+        )
     return user
 
 
@@ -56,3 +69,33 @@ async def require_admin(user: User = Depends(require_user)) -> User:
     if not user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="admin only")
     return user
+
+
+async def verify_csrf_token(
+    request: Request,
+    session_id: Annotated[str | None, Cookie(alias="session")] = None,
+) -> None:
+    """Verify CSRF token submitted with a state-changing request.
+
+    Uses the double-submit pattern: token is HMAC(secret, session_id), so the
+    server can recompute it from the cookie alone. Submitted token comes from
+    form field `csrf_token` or header `X-CSRF-Token`.
+
+    Routes used pre-session (login, register, email verify) MUST NOT use this
+    dependency — there is no session_id to bind against.
+    """
+    if not session_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="csrf_no_session",
+        )
+    submitted = request.headers.get("x-csrf-token", "")
+    if not submitted:
+        try:
+            form = await request.form()
+            submitted = str(form.get("csrf_token", ""))
+        except Exception:
+            submitted = ""
+    if not submitted or not verify_csrf(session_id, submitted):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="csrf_invalid",
+        )

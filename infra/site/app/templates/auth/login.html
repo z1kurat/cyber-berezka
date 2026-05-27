@@ -11,7 +11,7 @@
     <form method="POST" action="/auth/login" class="space-y-4">
       <label class="block">
         <span class="text-sm text-text-secondary">Email</span>
-        <input type="email" name="email" required value="{{ email or '' }}"
+        <input type="email" name="email" required value="{{ email or request.query_params.get('email', '') }}"
                class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
       </label>
       <label class="block">

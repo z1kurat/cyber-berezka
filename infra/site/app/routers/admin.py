@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db import get_db
-from app.deps import require_admin
+from app.deps import require_admin, verify_csrf_token
 from app.models.audit_log import AuditLog
 from app.models.user import User
 from app.models.vpn_key import VpnKey
@@ -74,6 +74,7 @@ async def approve_user(
     user_id: int,
     admin: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
+    _csrf: None = Depends(verify_csrf_token),
 ):
     result = await db.execute(select(User).where(User.id == user_id))
     target = result.scalar_one_or_none()
@@ -95,6 +96,7 @@ async def reject_user(
     reason: str = Form(""),
     admin: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
+    _csrf: None = Depends(verify_csrf_token),
 ):
     result = await db.execute(select(User).where(User.id == user_id))
     target = result.scalar_one_or_none()

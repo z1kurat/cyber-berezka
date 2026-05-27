@@ -21,6 +21,7 @@
       <p class="text-text-muted">Сейчас нет доступных серверов. Попробуйте позже.</p>
     {% else %}
     <form method="POST" action="/cabinet/keys" class="grid md:grid-cols-3 gap-3 items-end">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
       <label class="md:col-span-1">
         <span class="text-sm text-text-secondary">Название ключа</span>
         <input type="text" name="label" required minlength="1" maxlength="64"
@@ -123,6 +124,7 @@
         {% endif %}
 
         <form method="POST" action="/cabinet/keys/{{ k.id }}/revoke" class="mt-4 pt-4 border-t border-border-light">
+          <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
           <button class="text-sm text-cta hover:text-cta-hover underline">Отозвать ключ</button>
         </form>
       </div>

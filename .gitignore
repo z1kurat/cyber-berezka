@@ -221,3 +221,6 @@ __marimo__/
 # Generated ready-to-paste configs with secrets (never commit)
 *.ready.json
 *.ready.yaml
+
+# Brainstorming visual companion mockups
+.superpowers/

@@ -11,6 +11,7 @@
         <a href="/cabinet/admin/keys" class="text-accent-goldDk underline">Все ключи</a>
       {% endif %}
       <form method="POST" action="/auth/logout" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
         <button class="text-text-muted underline">Выйти</button>
       </form>
     </div>

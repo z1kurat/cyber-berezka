@@ -8,10 +8,13 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from redis.asyncio import Redis
+
 from app.config import settings
 from app.db import get_db
-from app.deps import get_current_user, get_session_service
+from app.deps import get_current_user, get_redis, get_session_service, verify_csrf_token
 from app.models.user import User
+from app.security.rate_limit import RateLimitExceeded, check_rate
 from app.services.auth import AuthError, AuthService
 from app.services.email import EmailService
 from app.services.sessions import SessionService
@@ -42,7 +45,17 @@ async def register_submit(
     password: str = Form(...),
     password_confirm: str = Form(...),
     db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
 ):
+    ip = request.client.host if request.client else "unknown"
+    try:
+        await check_rate(redis, f"rl:register:{ip}", limit=3, window_seconds=3600)
+    except RateLimitExceeded:
+        return TEMPLATES.TemplateResponse(
+            request, "auth/register.html",
+            {"request": request, "error": "Слишком много попыток. Попробуйте позже.", "email": email},
+            status_code=429,
+        )
     if password != password_confirm:
         return TEMPLATES.TemplateResponse(
             request, "auth/register.html",
@@ -53,13 +66,14 @@ async def register_submit(
     try:
         user, verify_token = await svc.register(email=email, password=password)
     except AuthError as e:
+        code = str(e)
         msg = {
             "email_taken": "Email уже занят",
             "weak_password": "Пароль должен быть не короче 12 символов",
-        }.get(str(e), "Ошибка регистрации")
+        }.get(code, "Ошибка регистрации")
         return TEMPLATES.TemplateResponse(
             request, "auth/register.html",
-            {"request": request, "error": msg, "email": email},
+            {"request": request, "error": msg, "error_code": code, "email": email},
             status_code=400,
         )
     try:
@@ -76,8 +90,15 @@ async def register_submit(
 @router.get("/verify/{token}")
 async def verify_email(
     token: str,
+    request: Request,
     db: AsyncSession = Depends(get_db),
+    redis: Redis = Depends(get_redis),
 ):
+    ip = request.client.host if request.client else "unknown"
+    try:
+        await check_rate(redis, f"rl:verify:{ip}", limit=10, window_seconds=3600)
+    except RateLimitExceeded:
+        raise HTTPException(status_code=429, detail="Слишком много попыток. Попробуйте позже.")
     svc = AuthService(db)
     ok = await svc.verify_email(token)
     if not ok:
@@ -97,7 +118,18 @@ async def login_submit(
     password: str = Form(...),
     db: AsyncSession = Depends(get_db),
     svc: SessionService = Depends(get_session_service),
+    redis: Redis = Depends(get_redis),
 ):
+    ip = request.client.host if request.client else "unknown"
+    norm = email.strip().lower()
+    try:
+        await check_rate(redis, f"rl:login:{ip}:{norm}", limit=5, window_seconds=900)
+    except RateLimitExceeded:
+        return TEMPLATES.TemplateResponse(
+            request, "auth/login.html",
+            {"request": request, "error": "Слишком много попыток входа. Попробуйте через 15 минут.", "email": email},
+            status_code=429,
+        )
     auth = AuthService(db)
     user, err = await auth.authenticate(email=email, password=password)
     if user is None:
@@ -105,6 +137,7 @@ async def login_submit(
             "invalid_credentials": "Неверный email или пароль",
             "rejected": "Доступ к сервису отклонён",
             "inactive": "Аккаунт деактивирован",
+            "locked": "Аккаунт временно заблокирован после нескольких неудачных попыток. Повторите через 30 минут.",
         }.get(err, "Ошибка входа")
         return TEMPLATES.TemplateResponse(
             request, "auth/login.html", {"request": request, "error": msg, "email": email}, status_code=400,
@@ -130,6 +163,7 @@ async def logout(
     request: Request,
     svc: SessionService = Depends(get_session_service),
     user: User | None = Depends(get_current_user),
+    _csrf: None = Depends(verify_csrf_token),
 ):
     sid = request.cookies.get("session")
     if sid:

@@ -54,20 +54,27 @@ async def attach_current_user(request: Request, call_next):
     render the right header (Cabinet/Logout vs Login/Register). DI runs only on
     routes that declare get_current_user, but the layout extends base.html on
     every page — including landing — so we do this once per request here.
+
+    Reads sessions exclusively via SessionService so the storage/hashing
+    contract stays in one place.
     """
     request.state.current_user = None
+    request.state.csrf_token = ""
     sid = request.cookies.get("session")
     if sid:
         from sqlalchemy import select
         from app.db import async_session_factory
-        from app.models.session import Session as SessionModel
         from app.models.user import User
+        from app.security.csrf import generate_csrf
+        from app.services.sessions import SessionService
+        redis = await get_redis()
         async with async_session_factory() as db:
-            result = await db.execute(select(SessionModel).where(SessionModel.id == sid))
-            sess = result.scalar_one_or_none()
-            if sess is not None and sess.is_valid:
+            svc = SessionService(db, redis)
+            sess = await svc.get(sid)
+            if sess is not None:
                 u = await db.execute(select(User).where(User.id == sess.user_id))
                 request.state.current_user = u.scalar_one_or_none()
+                request.state.csrf_token = generate_csrf(sid)
     return await call_next(request)
 
 

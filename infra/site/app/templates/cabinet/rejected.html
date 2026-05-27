@@ -9,6 +9,7 @@
       <p class="mt-4"><strong>Причина:</strong> {{ user.rejection_reason }}</p>
     {% endif %}
     <form method="POST" action="/auth/logout" class="mt-8">
+      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
       <button class="text-sm text-text-muted underline">Выйти</button>
     </form>
   </div>

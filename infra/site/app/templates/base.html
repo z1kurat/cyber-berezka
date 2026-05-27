@@ -25,6 +25,7 @@
                 {% if request.state.current_user %}
                     <a href="/cabinet" class="text-text-primary">Кабинет</a>
                     <form method="POST" action="/auth/logout" class="inline">
+                        <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
                         <button class="text-text-muted hover:text-text-primary underline">Выйти</button>
                     </form>
                 {% else %}

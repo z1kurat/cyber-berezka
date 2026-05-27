@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db import get_db
-from app.deps import get_redis, require_user
+from app.deps import get_redis, require_user, verify_csrf_token
 from app.services.geo import resolve_country
 from app.services.nodes import NodesService
 from app.models.user import User
@@ -125,6 +125,7 @@ async def keys_create(
     country: str = Form(..., min_length=2, max_length=4),
     user: User = Depends(require_user),
     db: AsyncSession = Depends(get_db),
+    _csrf: None = Depends(verify_csrf_token),
 ):
     from app.services.vpn_keys import NoServersInCountry
     if not user.is_approved:
@@ -149,6 +150,7 @@ async def keys_revoke(
     key_id: int,
     user: User = Depends(require_user),
     db: AsyncSession = Depends(get_db),
+    _csrf: None = Depends(verify_csrf_token),
 ):
     rw = RemnawaveAPI()
     try:
