@@ -18,10 +18,17 @@
     Серверы в Латвии, Нидерландах, Германии — спокойствие, проверенное вашим браузером.
   </p>
   <div class="cta-row">
+    {% if request.state.current_user %}
+    <a class="cta-primary" id="ctaMagnet" href="/cabinet/keys">
+      Управление ключами
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    {% else %}
     <a class="cta-primary" id="ctaMagnet" href="/auth/register">
       Начать защиту
       <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
+    {% endif %}
     <a class="cta-secondary" href="#how">Как это работает <span class="arrow">→</span></a>
   </div>
   <div class="trust">
@@ -360,11 +367,19 @@
 
 <!-- FINAL CTA -->
 <section class="final">
+  {% if request.state.current_user %}
+  <h2 class="final-title reveal">Готовы <em>управлять</em>?</h2>
+  <p class="final-text reveal reveal-delay-1">Перейдите в кабинет — создавайте ключи, проверяйте серверы.</p>
+  <div class="reveal reveal-delay-2" style="display:inline-block">
+    <a class="cta-primary" href="/cabinet/keys">В кабинет<svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  </div>
+  {% else %}
   <h2 class="final-title reveal">Готовы <em>начать</em>?</h2>
   <p class="final-text reveal reveal-delay-1">Регистрация занимает минуту. Первый ключ — через час после подтверждения email.</p>
   <div class="reveal reveal-delay-2" style="display:inline-block">
     <a class="cta-primary" href="/auth/register">Создать аккаунт<svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </div>
+  {% endif %}
 </section>
 
 {% endblock %}
