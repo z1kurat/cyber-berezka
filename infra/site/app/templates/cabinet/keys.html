@@ -87,9 +87,19 @@
       <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px dashed rgba(184,147,90,0.24)">
         {% if s %}
           <code style="display:block;font-family:'JetBrains Mono',Menlo,monospace;font-size:0.75rem;background:#FDFAF3;border:1px solid rgba(184,147,90,0.24);border-radius:6px;padding:0.75rem 0.95rem;color:#2A2624;word-break:break-all;line-height:1.5;margin-bottom:1rem">{{ s.vless_url }}</code>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin-bottom:0.75rem">
+            <span style="font-size:0.72rem;font-weight:600;letter-spacing:0.08em;color:#8B7E6A;text-transform:uppercase;width:100%;margin-bottom:0.3rem">Открыть в приложении</span>
+            <a href="v2raytun://import/{{ s.vless_url | urlencode }}"
+               style="padding:0.5rem 0.95rem;font-size:0.78rem;font-weight:500;color:#1A1818;border:1px solid rgba(184,147,90,0.4);border-radius:6px;text-decoration:none;background:#FDFAF3;transition:all 180ms">v2RayTun</a>
+            <a href="hiddify://import-config?content={{ s.vless_url | urlencode }}"
+               style="padding:0.5rem 0.95rem;font-size:0.78rem;font-weight:500;color:#1A1818;border:1px solid rgba(184,147,90,0.4);border-radius:6px;text-decoration:none;background:#FDFAF3;transition:all 180ms">Hiddify</a>
+            <a href="{{ s.vless_url }}"
+               style="padding:0.5rem 0.95rem;font-size:0.78rem;font-weight:500;color:#1A1818;border:1px solid rgba(184,147,90,0.4);border-radius:6px;text-decoration:none;background:#FDFAF3;transition:all 180ms">NekoBox · VLESS</a>
+            <button type="button" data-copy="{{ s.vless_url }}" data-amnezia
+                    style="padding:0.5rem 0.95rem;font-size:0.78rem;font-weight:500;color:#1A1818;border:1px solid rgba(184,147,90,0.4);border-radius:6px;background:#FDFAF3;cursor:pointer;font-family:inherit">AmneziaVPN</button>
+          </div>
           <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center">
             <button type="button" data-copy="{{ s.vless_url }}" class="cta-primary" style="padding:0.55rem 1rem;font-size:0.78rem">Скопировать ссылку</button>
-            <button type="button" data-copy="{{ s.vless_url }}" data-amnezia class="cta-secondary" style="padding:0.55rem 1rem;font-size:0.78rem">Импорт в AmneziaVPN</button>
             {% if server_qrs.get(s.vless_url) %}
               <details style="display:inline-block">
                 <summary style="cursor:pointer;color:#1A1818;padding:0.55rem 1rem;font-size:0.78rem;font-weight:500;border:1px solid rgba(184,147,90,0.24);border-radius:6px;display:inline-block">QR-код</summary>
@@ -110,6 +120,36 @@
     {% endfor %}
   </section>
   {% endif %}
+
+  <!-- Install apps section -->
+  <section style="background:#FFFCF6;border:1px solid rgba(184,147,90,0.24);border-radius:16px;padding:2rem;margin-top:2rem">
+    <div class="eyebrow" style="margin-bottom:1rem"><span class="eyebrow-line"></span><span>Приложения</span></div>
+    <h2 style="font-size:1.2rem;font-weight:600;letter-spacing:-0.018em;margin-bottom:1rem">Где скачать клиент</h2>
+    <ul style="list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;font-size:0.9rem;color:#4A4541;line-height:1.6">
+      <li>
+        <strong style="color:#1A1818;display:block;margin-bottom:0.25rem">iOS</strong>
+        <a href="https://apps.apple.com/app/v2raytun/id6476628951" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">v2RayTun</a> ·
+        <a href="https://apps.apple.com/app/amneziavpn/id1600529900" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">AmneziaVPN</a> ·
+        <a href="https://apps.apple.com/app/hiddify/id6596777532" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">Hiddify</a>
+      </li>
+      <li>
+        <strong style="color:#1A1818;display:block;margin-bottom:0.25rem">Android</strong>
+        <a href="https://play.google.com/store/apps/details?id=com.v2raytun.android" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">v2RayTun</a> ·
+        <a href="https://hiddify.com/install" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">Hiddify</a> ·
+        <a href="https://play.google.com/store/apps/details?id=org.amnezia.vpn" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">AmneziaVPN</a>
+      </li>
+      <li>
+        <strong style="color:#1A1818;display:block;margin-bottom:0.25rem">Windows</strong>
+        <a href="https://hiddify.com/install" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">Hiddify Desktop</a> ·
+        <a href="https://amnezia.org/downloads" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">AmneziaVPN</a>
+      </li>
+      <li>
+        <strong style="color:#1A1818;display:block;margin-bottom:0.25rem">macOS</strong>
+        <a href="https://apps.apple.com/app/hiddify/id6596777532" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">Hiddify</a> ·
+        <a href="https://apps.apple.com/app/amneziavpn/id1600529900" style="color:#966D40;text-decoration:underline;text-underline-offset:3px">AmneziaVPN</a>
+      </li>
+    </ul>
+  </section>
 </main>
 
 <script>
