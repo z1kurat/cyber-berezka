@@ -1,11 +1,23 @@
 {% extends "base.html" %}
-{% block title %}Подтвердите email — Cyber Berezka{% endblock %}
+{% block title %}Письмо отправлено — Cyber Berezka{% endblock %}
 {% block content %}
-<main class="max-w-md mx-auto px-6 py-16">
-  <div class="bg-bg-card border border-border-light rounded-lg shadow-card p-8 text-center">
-    <h1 class="font-serif text-3xl mb-4">Письмо отправлено</h1>
-    <p>Мы отправили письмо со ссылкой подтверждения на <strong>{{ email }}</strong>.</p>
-    <p class="text-sm text-text-muted mt-4">Если письмо не пришло за 10 минут, проверьте папку «Спам».</p>
+
+<main class="hero" style="max-width:540px;padding-top:9rem;padding-bottom:6rem;text-align:center">
+  <div style="width:72px;height:72px;border-radius:50%;background:rgba(95,139,92,0.12);display:flex;align-items:center;justify-content:center;margin:0 auto 2rem">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <path d="M5 12l5 5L20 7" stroke="#5F8B5C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
   </div>
+  <h1 class="headline" style="font-size:clamp(2rem,4.4vw,2.8rem);margin-bottom:1.5rem">
+    <span class="line"><span class="word" style="animation-delay:0.3s">Письмо</span> <span class="word accent" style="animation-delay:0.45s">отправлено.</span></span>
+  </h1>
+  <p class="lead" style="max-width:480px;margin:0 auto 2rem">
+    Мы отправили ссылку для подтверждения на <strong style="color:#1A1818">{{ email }}</strong>. Откройте письмо и нажмите кнопку — это займёт минуту.
+  </p>
+  <p style="font-size:0.85rem;color:#8B7E6A;line-height:1.6;margin-bottom:2.5rem">
+    Письмо не пришло? Проверьте папку «Спам». Если ничего нет — попробуйте <a href="/auth/register" style="color:#1A1818;text-decoration:underline">зарегистрироваться</a> ещё раз.
+  </p>
+  <a class="cta-secondary" href="/">← На главную</a>
 </main>
+
 {% endblock %}
