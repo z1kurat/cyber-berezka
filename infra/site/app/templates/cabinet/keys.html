@@ -1,178 +1,133 @@
 {% extends "base.html" %}
-{% block title %}Ключи — Cyber Berezka{% endblock %}
+{% block title %}Мои ключи — Cyber Berezka{% endblock %}
 {% block content %}
-<main class="max-w-4xl mx-auto px-6 py-12">
-  <header class="flex items-center justify-between mb-8">
-    <h1 class="font-serif text-3xl">Мои ключи</h1>
-    <a href="/cabinet" class="text-sm text-accent-goldDk underline">← В кабинет</a>
+
+<main style="max-width:1100px;margin:0 auto;padding:8rem 2rem 4rem">
+  <header style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3rem;flex-wrap:wrap;gap:1rem">
+    <div>
+      <div class="eyebrow"><span class="eyebrow-line"></span><span>Ключи</span></div>
+      <h1 class="headline" style="font-size:clamp(2rem,4vw,2.8rem);margin:0">Мои ключи</h1>
+    </div>
+    <a class="cta-secondary" href="/cabinet">← В кабинет</a>
   </header>
 
-  {# Step 1: создание ключа — имя + страна (только доступные) #}
-  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6 mb-6">
-    <h2 class="font-serif text-xl mb-4">{% if not keys_rows %}Создайте первый ключ{% else %}Добавить ещё один ключ{% endif %}</h2>
-    {% set err = request.query_params.get('error') %}
-    {% if err == 'label_required' %}
-      <p class="text-cta mb-3 text-sm">Имя ключа обязательно</p>
-    {% elif err == 'no_servers' %}
-      <p class="text-cta mb-3 text-sm">В выбранной стране нет доступных серверов. Попробуйте другую.</p>
-    {% endif %}
+  {% set err = request.query_params.get('error') %}
+  {% if err == 'label_required' %}
+    <div style="background:rgba(184,53,31,0.08);border:1px solid rgba(184,53,31,0.25);border-radius:8px;padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:0.875rem;color:#B8351F">Имя ключа обязательно.</div>
+  {% elif err == 'no_servers' %}
+    <div style="background:rgba(184,53,31,0.08);border:1px solid rgba(184,53,31,0.25);border-radius:8px;padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:0.875rem;color:#B8351F">В выбранной стране нет доступных серверов. Попробуйте другую.</div>
+  {% endif %}
 
+  <!-- Create key form -->
+  <section style="background:#FFFCF6;border:1px solid rgba(184,147,90,0.24);border-radius:16px;padding:2rem;margin-bottom:2rem;box-shadow:0 24px 60px rgba(26,24,24,0.06)">
+    <h2 style="font-size:1.4rem;font-weight:600;letter-spacing:-0.018em;margin-bottom:1.5rem">
+      {% if not keys_rows %}Создайте первый ключ{% else %}Добавить ещё один ключ{% endif %}
+    </h2>
     {% if not countries %}
-      <p class="text-text-muted">Сейчас нет доступных серверов. Попробуйте позже.</p>
+      <p style="color:#6B6661">Сейчас нет доступных серверов. Попробуйте позже.</p>
     {% else %}
-    <form method="POST" action="/cabinet/keys" class="grid md:grid-cols-3 gap-3 items-end">
+    <form method="POST" action="/cabinet/keys" style="display:grid;grid-template-columns:1fr 1fr auto;gap:1rem;align-items:end">
       <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
-      <label class="md:col-span-1">
-        <span class="text-sm text-text-secondary">Название ключа</span>
-        <input type="text" name="label" required minlength="1" maxlength="64"
-               placeholder="Телефон, ноутбук..."
-               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
+      <label style="display:flex;flex-direction:column;gap:0.4rem">
+        <span style="font-size:0.78rem;font-weight:500;color:#6B6661;letter-spacing:0.04em;text-transform:uppercase">Название</span>
+        <input type="text" name="label" required minlength="1" maxlength="64" placeholder="iPhone, MacBook..."
+               style="font-family:inherit;font-size:0.95rem;padding:0.75rem 1rem;background:#FDFAF3;border:1px solid rgba(184,147,90,0.24);border-radius:8px">
       </label>
-      <label class="md:col-span-1">
-        <span class="text-sm text-text-secondary">Страна</span>
-        <select name="country" required
-                class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
+      <label style="display:flex;flex-direction:column;gap:0.4rem">
+        <span style="font-size:0.78rem;font-weight:500;color:#6B6661;letter-spacing:0.04em;text-transform:uppercase">Страна</span>
+        <select name="country" required style="font-family:inherit;font-size:0.95rem;padding:0.75rem 1rem;background:#FDFAF3;border:1px solid rgba(184,147,90,0.24);border-radius:8px">
           {% for c in countries %}
-          <option value="{{ c.code }}">{{ c.flag }} {{ c.name }}{% if c.city %} ({{ c.city }}){% endif %}</option>
+            <option value="{{ c.code }}">{{ c.flag }} {{ c.name }}{% if c.city %} ({{ c.city }}){% endif %}</option>
           {% endfor %}
         </select>
       </label>
-      <button type="submit" class="btn-primary md:col-span-1">+ Создать ключ</button>
+      <button type="submit" class="cta-primary">+ Создать ключ</button>
     </form>
-    {% endif %}
-    {% if not keys_rows %}
-      <p class="text-xs text-text-muted mt-3">Ключ привязывается к случайному серверу в выбранной стране.</p>
     {% endif %}
   </section>
 
-  {# Step 2: список ключей — каждый показывает только свой сервер #}
+  {% if subscription_url %}
+  <!-- Subscription URL block -->
+  <section style="background:#FFFCF6;border:1px solid rgba(184,147,90,0.24);border-radius:16px;padding:2rem;margin-bottom:2rem">
+    <div class="eyebrow" style="margin-bottom:1rem"><span class="eyebrow-line"></span><span>Подписка</span></div>
+    <p style="font-size:0.95rem;color:#6B6661;margin-bottom:1rem;line-height:1.6">
+      Импортируйте этот URL в v2RayTun, Hiddify или любой совместимый клиент. Подписка содержит все ваши активные ключи.
+    </p>
+    <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+      <code style="font-family:'JetBrains Mono',Menlo,monospace;font-size:0.78rem;background:#FDFAF3;border:1px solid rgba(184,147,90,0.24);border-radius:6px;padding:0.75rem 0.95rem;flex:1;min-width:240px;word-break:break-all">{{ subscription_url }}</code>
+      <button type="button" data-copy="{{ subscription_url }}" class="cta-primary" style="padding:0.75rem 1.25rem;font-size:0.85rem">Скопировать</button>
+    </div>
+    {% if qr_data_uri %}
+      <details style="margin-top:1rem">
+        <summary style="cursor:pointer;font-size:0.875rem;color:#6B6661">Показать QR-код</summary>
+        <img src="{{ qr_data_uri }}" alt="Subscription QR" style="margin-top:1rem;max-width:200px;border-radius:8px;border:1px solid rgba(184,147,90,0.24)">
+      </details>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <!-- Keys list -->
   {% if keys_rows %}
-  <section class="space-y-3">
+  <section style="display:flex;flex-direction:column;gap:1rem">
     {% for row in keys_rows %}
     {% set k = row.key %}
     {% set s = row.server %}
-    <details class="bg-bg-card border border-border-light rounded-lg shadow-card">
-      <summary class="cursor-pointer px-5 py-4 flex items-center justify-between hover:bg-bg-section-alt rounded-lg">
+    <details class="server-card tilt" style="cursor:default">
+      <summary style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;list-style:none">
         <div>
-          <div class="font-medium">
+          <div style="font-size:1.05rem;font-weight:600;letter-spacing:-0.01em">
             {{ k.label }}
-            {% if s %}<span class="text-text-muted text-sm">— {{ s.flag }} {{ s.country }}</span>
-            {% elif row.is_legacy %}<span class="text-text-muted text-sm">— все серверы</span>
-            {% else %}<span class="text-warning text-sm">— сервер недоступен</span>
-            {% endif %}
+            {% if s %}<span style="color:#8B7E6A;font-weight:400;margin-left:0.5rem">— {{ s.flag }} {{ s.country }}</span>{% endif %}
           </div>
-          <div class="text-xs text-text-muted">создан {{ k.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+          <div style="font-size:0.78rem;color:#8B7E6A;margin-top:0.2rem">Создан {{ k.created_at.strftime('%d.%m.%Y') }}</div>
         </div>
-        <span class="text-xs text-accent-goldDk">▾ Установить</span>
+        <span style="font-size:0.78rem;color:#5F8B5C;padding:0.25rem 0.6rem;border-radius:999px;background:rgba(95,139,92,0.12);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Активен</span>
       </summary>
 
-      <div class="px-5 pb-5">
+      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px dashed rgba(184,147,90,0.24)">
         {% if s %}
-          {# Bound key — single server card #}
-          <div class="bg-bg-section-alt border border-border-light rounded p-4 mb-4">
-            <div class="mb-3">
-              <div class="text-lg font-medium">{{ s.flag }} {{ s.country }}</div>
-              <div class="text-xs text-text-muted">{% if s.city %}{{ s.city }} · {% endif %}{{ s.address }}:{{ s.port }}{% if not s.is_connected %} · <span class="text-warning">тех. работы</span>{% endif %}</div>
-            </div>
-            <div class="flex flex-wrap gap-2 mb-3">
-              <a href="v2raytun://import/{{ s.vless_url | urlencode }}"
-                 class="text-xs px-3 py-1.5 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">v2RayTun</a>
-              <a href="hiddify://import-config?content={{ s.vless_url | urlencode }}"
-                 class="text-xs px-3 py-1.5 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">Hiddify</a>
-              <a href="{{ s.vless_url }}"
-                 class="text-xs px-3 py-1.5 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">NekoBox / VLESS</a>
-              <button type="button"
-                      data-vless="{{ s.vless_url }}"
-                      onclick="copyVless(this)"
-                      class="text-xs px-3 py-1.5 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white transition">Скопировать для AmneziaVPN</button>
-            </div>
-            <p class="text-[10px] text-text-muted mb-3">AmneziaVPN: скопируйте ссылку → откройте приложение → «+» → «Импорт настроек из текста» → вставьте.</p>
-            <details class="text-xs">
-              <summary class="cursor-pointer text-text-secondary">QR / скопировать</summary>
-              <div class="mt-3 flex gap-3 items-start">
-                <div class="flex-1 flex gap-2">
-                  <input readonly value="{{ s.vless_url }}"
-                         id="vurl-{{ k.id }}"
-                         class="flex-1 border border-border-light rounded px-2 py-1 bg-white font-mono text-[10px]">
-                  <button type="button"
-                          onclick="navigator.clipboard.writeText(document.getElementById('vurl-{{ k.id }}').value)"
-                          class="px-2 py-1 border border-border-light rounded hover:bg-white text-xs">copy</button>
-                </div>
-                <img src="{{ server_qrs[s.vless_url] }}" alt="QR" class="w-28 h-28 border border-border-light flex-shrink-0">
-              </div>
-            </details>
-          </div>
-        {% elif row.is_legacy and servers %}
-          {# Legacy key (without country binding) — show all servers as fallback #}
-          <p class="text-sm text-text-secondary mb-3">Этот ключ был создан до выбора страны — показываем все доступные серверы:</p>
-          <div class="grid md:grid-cols-2 gap-3 mb-4">
-            {% for srv in servers %}
-            <div class="bg-bg-section-alt border border-border-light rounded p-3">
-              <div class="text-sm font-medium">{{ srv.flag }} {{ srv.country }}</div>
-              <div class="text-xs text-text-muted mb-2">{{ srv.address }}:{{ srv.port }}</div>
-              <div class="flex flex-wrap gap-1">
-                <a href="v2raytun://import/{{ srv.vless_url | urlencode }}"
-                   class="text-[10px] px-2 py-1 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white">v2RayTun</a>
-                <a href="hiddify://import-config?content={{ srv.vless_url | urlencode }}"
-                   class="text-[10px] px-2 py-1 border border-accent-goldDk rounded hover:bg-accent-gold hover:text-white">Hiddify</a>
-              </div>
-            </div>
-            {% endfor %}
+          <code style="display:block;font-family:'JetBrains Mono',Menlo,monospace;font-size:0.75rem;background:#FDFAF3;border:1px solid rgba(184,147,90,0.24);border-radius:6px;padding:0.75rem 0.95rem;color:#2A2624;word-break:break-all;line-height:1.5;margin-bottom:1rem">{{ s.vless_url }}</code>
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center">
+            <button type="button" data-copy="{{ s.vless_url }}" class="cta-primary" style="padding:0.55rem 1rem;font-size:0.78rem">Скопировать ссылку</button>
+            <button type="button" data-copy="{{ s.vless_url }}" data-amnezia class="cta-secondary" style="padding:0.55rem 1rem;font-size:0.78rem">Импорт в AmneziaVPN</button>
+            {% if server_qrs.get(s.vless_url) %}
+              <details style="display:inline-block">
+                <summary style="cursor:pointer;color:#1A1818;padding:0.55rem 1rem;font-size:0.78rem;font-weight:500;border:1px solid rgba(184,147,90,0.24);border-radius:6px;display:inline-block">QR-код</summary>
+                <img src="{{ server_qrs[s.vless_url] }}" alt="QR" style="margin-top:0.6rem;max-width:160px;border-radius:6px;border:1px solid rgba(184,147,90,0.24)">
+              </details>
+            {% endif %}
           </div>
         {% else %}
-          <p class="text-text-muted text-sm">Привязанный сервер ({{ (k.meta or {}).get('address', '?') }}) недоступен. Создайте новый ключ или подождите восстановления.</p>
+          <p style="color:#8B7E6A;font-size:0.875rem">Привязанный сервер ({{ (k.meta or {}).get('address', '?') }}) недоступен. Создайте новый ключ или подождите восстановления.</p>
         {% endif %}
 
-        <form method="POST" action="/cabinet/keys/{{ k.id }}/revoke" class="mt-4 pt-4 border-t border-border-light">
+        <form method="POST" action="/cabinet/keys/{{ k.id }}/revoke" style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px dashed rgba(184,147,90,0.24)" onsubmit="return confirm('Точно отозвать этот ключ? Действие необратимо.')">
           <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
-          <button class="text-sm text-cta hover:text-cta-hover underline">Отозвать ключ</button>
+          <button type="submit" style="background:none;border:none;color:#B8351F;font-family:inherit;font-size:0.85rem;text-decoration:underline;cursor:pointer;padding:0">Отозвать ключ</button>
         </form>
       </div>
     </details>
     {% endfor %}
   </section>
   {% endif %}
-
-  <script>
-    function copyVless(btn) {
-      const url = btn.getAttribute('data-vless');
-      const orig = btn.textContent;
-      const showOk = () => {
-        btn.textContent = '✓ скопировано';
-        setTimeout(() => { btn.textContent = orig; }, 2000);
-      };
-      const showErr = (e) => {
-        btn.textContent = '✗ ошибка — скопируйте URL ниже';
-        console.error('clipboard error:', e);
-        setTimeout(() => { btn.textContent = orig; }, 3000);
-      };
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(url).then(showOk, showErr);
-      } else {
-        // Fallback for older browsers / non-secure contexts.
-        try {
-          const ta = document.createElement('textarea');
-          ta.value = url;
-          ta.style.position = 'fixed';
-          ta.style.left = '-9999px';
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          showOk();
-        } catch (e) { showErr(e); }
-      }
-    }
-  </script>
-
-  <section id="install" class="mt-12 text-sm text-text-muted">
-    <h3 class="font-serif text-lg mb-3 text-text-primary">Установка приложений</h3>
-    <ul class="grid md:grid-cols-2 gap-3">
-      <li>iOS: <a href="https://apps.apple.com/app/v2raytun/id6476628951" class="underline text-accent-goldDk">v2RayTun</a> · <a href="https://apps.apple.com/app/amneziavpn/id1600529900" class="underline text-accent-goldDk">AmneziaVPN</a></li>
-      <li>Android: <a href="https://play.google.com/store/apps/details?id=com.v2raytun.android" class="underline text-accent-goldDk">v2RayTun</a> · <a href="https://hiddify.com/install" class="underline text-accent-goldDk">Hiddify</a> · <a href="https://play.google.com/store/apps/details?id=org.amnezia.vpn" class="underline text-accent-goldDk">AmneziaVPN</a></li>
-      <li>Windows: <a href="https://hiddify.com/install" class="underline text-accent-goldDk">Hiddify Desktop</a> · <a href="https://amnezia.org/downloads" class="underline text-accent-goldDk">AmneziaVPN</a></li>
-      <li>macOS: <a href="https://apps.apple.com/app/hiddify/id6596777532" class="underline text-accent-goldDk">Hiddify</a> · <a href="https://apps.apple.com/app/amneziavpn/id1600529900" class="underline text-accent-goldDk">AmneziaVPN</a></li>
-    </ul>
-  </section>
 </main>
+
+<script>
+// Copy buttons with check-mark feedback
+document.querySelectorAll('[data-copy]').forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const text = btn.dataset.copy;
+    try {
+      await navigator.clipboard.writeText(text);
+      const original = btn.textContent;
+      btn.textContent = '✓ Скопировано';
+      setTimeout(() => { btn.textContent = original; }, 2000);
+    } catch (err) {
+      alert('Не удалось скопировать. Скопируйте вручную.');
+    }
+  });
+});
+</script>
+
 {% endblock %}
