@@ -64,6 +64,13 @@
 
 ## Site UX / визуальный редизайн (приоритет: высокий, обозначен 2026-05-26)
 
+**Status 2026-05-28:** **DONE.**
+- Spec: `docs/superpowers/specs/2026-05-28-site-redesign-design.md`
+- Plan: `docs/superpowers/plans/2026-05-28-site-redesign.md`
+- Canonical reference: `docs/superpowers/specs/2026-05-28-site-redesign-assets/landing-canonical.html`
+- Реализованы: 14 шаблонов + `static/css/styles.css` (drop Tailwind) + `static/js/site.js` + favicon. Бренд «премиум-кремовое» + cyber-berezka motif (PCB-leaf, Cyrillic Б, paper-plane connections, tilt-on-hover, scroll-progress).
+- Deploy: 2026-05-28 на 212.74.231.217. Smoke-tests прошли (/, /auth/login, /auth/register, /legal/*, /static/* — все 200).
+
 Никита Олегович зафиксировал: текущая реализация сайта (`infra/site/app/templates/*.html`) **визуально плохая и с плохим UX**. Шаблоны существуют и работают, но не соответствуют brand-спецификации Direction A «Премиум-кремовое» (Cormorant Garamond + Inter, BG `#F7F3EB`, gold `#B8935A`, CTA wine `#B8351F`) на уровне реализации — это копия скелета на Tailwind без выверенных композиций, типографики, отступов, иконок, состояний (loading/empty/error), мобильных адаптаций.
 
 **Скоуп:**
