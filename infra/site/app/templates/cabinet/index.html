@@ -1,30 +1,52 @@
 {% extends "base.html" %}
 {% block title %}Кабинет — Cyber Berezka{% endblock %}
 {% block content %}
-<main class="max-w-4xl mx-auto px-6 py-12">
-  <header class="flex items-center justify-between mb-8">
-    <h1 class="font-serif text-3xl">Кабинет</h1>
-    <div class="flex items-center gap-4 text-sm">
-      <span class="text-text-muted">{{ user.email }}</span>
-      {% if user.is_admin %}
-        <a href="/cabinet/admin/pending" class="text-accent-goldDk underline">Pending users</a>
-        <a href="/cabinet/admin/keys" class="text-accent-goldDk underline">Все ключи</a>
-      {% endif %}
-      <form method="POST" action="/auth/logout" class="inline">
-        <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
-        <button class="text-text-muted underline">Выйти</button>
-      </form>
-    </div>
-  </header>
 
-  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6 mb-6">
-    <h2 class="font-serif text-xl mb-4">Доступные серверы</h2>
-    {% include "cabinet/_server_list.html" ignore missing %}
-  </section>
+<main class="hero" style="max-width:1100px;text-align:left;padding-top:8rem;padding-bottom:3rem">
+  <div class="eyebrow"><span class="eyebrow-line"></span><span>Личный кабинет</span></div>
+  <h1 class="headline" style="font-size:clamp(2.2rem,4.6vw,3.2rem);margin-bottom:1rem">
+    <span class="line"><span class="word" style="animation-delay:0.3s">Здравствуйте,</span></span>
+    <span class="line"><span class="word accent" style="animation-delay:0.45s">{{ user.email.split('@')[0] }}.</span></span>
+  </h1>
+  <p class="lead" style="margin:0 0 2.5rem;text-align:left">
+    Ваш аккаунт активен. Управляйте ключами, проверяйте серверы или измените режим защиты.
+  </p>
 
-  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-6">
-    <h2 class="font-serif text-xl mb-4">Ключи</h2>
-    <a href="/cabinet/keys" class="btn-primary inline-block">Управление ключами →</a>
-  </section>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:4rem">
+    <a class="cta-primary" href="/cabinet/keys">
+      Управление ключами
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    {% if user.is_admin %}
+      <a class="cta-secondary" href="/cabinet/admin/pending">Pending users <span class="arrow">→</span></a>
+      <a class="cta-secondary" href="/cabinet/admin/keys">Все ключи <span class="arrow">→</span></a>
+    {% endif %}
+  </div>
 </main>
+
+<section class="section" style="padding-top:0">
+  <div class="section-tag"><span class="section-tag-line"></span><span>Серверы</span></div>
+  <h2 class="section-title">Доступные сервера.</h2>
+  <p class="lead" style="opacity:0;animation:none;margin:0 0 4rem;text-align:left">
+    Live-статусы наших нод. При создании ключа выбираете одну из стран ниже.
+  </p>
+  <div class="servers-grid">
+    {% for node in nodes %}
+    <div class="server-card tilt">
+      <div class="server-flag">{{ node.flag if node.flag else '🌍' }}</div>
+      <div class="server-country">{{ node.country if node.country else (node.countryCode or 'Сервер') }}</div>
+      <div class="server-city">{{ node.city if node.city else node.address }}</div>
+      <div class="server-stat"><span class="server-stat-label">Адрес</span><span class="server-stat-value">{{ node.address }}</span></div>
+      <div class="server-stat"><span class="server-stat-label">Протокол</span><span class="server-stat-value">VLESS-Reality</span></div>
+      <span class="server-status">
+        <span class="server-status-dot" style="background:{{ '#5F8B5C' if node.isConnected else '#B8351F' }}"></span>
+        {{ 'Онлайн' if node.isConnected else 'Оффлайн' }}
+      </span>
+    </div>
+    {% else %}
+    <p style="grid-column:1/-1;color:#6B6661">Сейчас нет доступных серверов. Попробуйте позже.</p>
+    {% endfor %}
+  </div>
+</section>
+
 {% endblock %}
