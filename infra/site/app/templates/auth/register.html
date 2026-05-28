@@ -1,39 +1,57 @@
 {% extends "base.html" %}
-{% block title %}Регистрация — Cyber Berezka{% endblock %}
+{% block title %}Создать аккаунт — Cyber Berezka{% endblock %}
 {% block content %}
-<main class="max-w-md mx-auto px-6 py-16">
-  <div class="bg-bg-card border border-border-light rounded-lg shadow-card p-8">
-    <h1 class="font-serif text-3xl mb-6">Создать аккаунт</h1>
-    {% if error %}
-      <p class="text-cta mb-4 text-sm">
-        {{ error }}{% if error_code == "email_taken" %}.
-        <a href="/auth/login?email={{ email|urlencode }}" class="underline text-accent-goldDk">Войти →</a>
-        {% endif %}
-      </p>
-    {% endif %}
-    <form method="POST" action="/auth/register" class="space-y-4">
-      <label class="block">
-        <span class="text-sm text-text-secondary">Email</span>
-        <input type="email" name="email" required value="{{ email or '' }}"
-               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
-      </label>
-      <label class="block">
-        <span class="text-sm text-text-secondary">Пароль (минимум 12 символов)</span>
-        <input type="password" name="password" required minlength="12"
-               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
-      </label>
-      <label class="block">
-        <span class="text-sm text-text-secondary">Повтор пароля</span>
-        <input type="password" name="password_confirm" required minlength="12"
-               class="mt-1 block w-full border border-border-light rounded px-3 py-2 bg-white">
-      </label>
-      <label class="flex items-start gap-2 text-sm">
-        <input type="checkbox" required class="mt-1">
-        <span>Я принимаю <a href="/legal/terms" class="underline text-accent-goldDk">Условия использования</a> и <a href="/legal/privacy" class="underline text-accent-goldDk">Политику конфиденциальности</a></span>
-      </label>
-      <button type="submit" class="btn-primary w-full">Создать аккаунт</button>
-    </form>
-    <p class="mt-6 text-sm text-text-muted">Уже есть аккаунт? <a href="/auth/login" class="text-accent-goldDk underline">Войти</a></p>
+
+<main class="hero" style="max-width:480px;padding-top:8rem;padding-bottom:4rem;text-align:center">
+  <div class="eyebrow">
+    <span class="eyebrow-line"></span>
+    <span>Регистрация</span>
+    <span class="eyebrow-line"></span>
   </div>
+  <h1 class="headline" style="font-size:clamp(2.4rem,5vw,3.4rem);margin-bottom:1.5rem">
+    <span class="line"><span class="word" style="animation-delay:0.3s">Создайте</span> <span class="word accent" style="animation-delay:0.4s">аккаунт.</span></span>
+  </h1>
+  <p class="lead" style="margin-bottom:2.5rem">
+    Подтверждение email → ручная проверка в течение суток → готовый ключ.
+  </p>
+
+  {% if error %}
+    <div style="background:rgba(184,53,31,0.08);border:1px solid rgba(184,53,31,0.25);border-radius:8px;padding:0.85rem 1rem;margin-bottom:1.5rem;font-size:0.875rem;color:#B8351F;text-align:left">
+      {{ error }}{% if error_code == "email_taken" %}.
+      <a href="/auth/login?email={{ email|urlencode }}" style="color:#B8351F;text-decoration:underline;font-weight:500">Войти →</a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <form method="POST" action="/auth/register" style="text-align:left;display:flex;flex-direction:column;gap:1rem">
+    <label style="display:flex;flex-direction:column;gap:0.4rem">
+      <span style="font-size:0.78rem;font-weight:500;color:#6B6661;letter-spacing:0.04em;text-transform:uppercase">Email</span>
+      <input type="email" name="email" required autofocus value="{{ email or '' }}"
+             style="font-family:inherit;font-size:0.95rem;padding:0.8rem 1rem;background:#FDFAF3;border:1px solid rgba(184,147,90,0.24);border-radius:8px;color:#1A1818">
+    </label>
+    <label style="display:flex;flex-direction:column;gap:0.4rem">
+      <span style="font-size:0.78rem;font-weight:500;color:#6B6661;letter-spacing:0.04em;text-transform:uppercase">Пароль <span style="color:#8B7E6A;text-transform:none;font-weight:400">(минимум 12 символов)</span></span>
+      <input type="password" name="password" required minlength="12"
+             style="font-family:inherit;font-size:0.95rem;padding:0.8rem 1rem;background:#FDFAF3;border:1px solid rgba(184,147,90,0.24);border-radius:8px;color:#1A1818">
+    </label>
+    <label style="display:flex;flex-direction:column;gap:0.4rem">
+      <span style="font-size:0.78rem;font-weight:500;color:#6B6661;letter-spacing:0.04em;text-transform:uppercase">Повтор пароля</span>
+      <input type="password" name="password_confirm" required minlength="12"
+             style="font-family:inherit;font-size:0.95rem;padding:0.8rem 1rem;background:#FDFAF3;border:1px solid rgba(184,147,90,0.24);border-radius:8px;color:#1A1818">
+    </label>
+    <label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.85rem;color:#6B6661;margin-top:0.25rem">
+      <input type="checkbox" required style="margin-top:0.25rem">
+      <span>Я принимаю <a href="/legal/terms" style="color:#1A1818;text-decoration:underline">Условия использования</a> и <a href="/legal/privacy" style="color:#1A1818;text-decoration:underline">Политику конфиденциальности</a></span>
+    </label>
+    <button type="submit" class="cta-primary" style="margin-top:0.5rem;justify-content:center">
+      Создать аккаунт
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </form>
+
+  <p style="margin-top:2rem;font-size:0.875rem;color:#6B6661">
+    Уже есть аккаунт? <a href="/auth/login" style="color:#1A1818;text-decoration:underline;text-underline-offset:3px">Войти</a>
+  </p>
 </main>
+
 {% endblock %}
