@@ -1,61 +1,58 @@
 {% extends "base.html" %}
 {% block title %}Все ключи — Cyber Berezka{% endblock %}
 {% block content %}
-<main class="max-w-5xl mx-auto px-6 py-12">
-  <header class="flex items-center justify-between mb-8">
-    <h1 class="font-serif text-3xl">Все ключи</h1>
-    <nav class="flex gap-4 text-sm">
-      <a href="/cabinet/admin/pending" class="text-accent-goldDk underline">Pending users</a>
-      <a href="/cabinet" class="text-accent-goldDk underline">← В кабинет</a>
-    </nav>
+
+<main style="max-width:1100px;margin:0 auto;padding:8rem 2rem 4rem">
+  <header style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3rem;flex-wrap:wrap;gap:1rem">
+    <div>
+      <div class="eyebrow"><span class="eyebrow-line"></span><span>Admin · все ключи</span></div>
+      <h1 class="headline" style="font-size:clamp(1.8rem,3.6vw,2.4rem);margin:0">Ключи всех пользователей</h1>
+    </div>
+    <a class="cta-secondary" href="/cabinet">← В кабинет</a>
   </header>
 
-  <section class="bg-bg-card border border-border-light rounded-lg shadow-card p-5 mb-6">
-    <div class="flex gap-6 text-sm">
-      <div><span class="text-text-muted">Всего:</span> <span class="font-medium">{{ rows | length }}</span></div>
-      {% for status, count in by_status.items() %}
-      <div><span class="text-text-muted">{{ status }}:</span> <span class="font-medium">{{ count }}</span></div>
-      {% endfor %}
-    </div>
-  </section>
+  {% if by_status %}
+  <div style="display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+    {% for status, count in by_status.items() %}
+      <div style="background:#FFFCF6;border:1px solid rgba(184,147,90,0.24);border-radius:8px;padding:0.7rem 1.1rem;font-size:0.85rem">
+        <span style="color:#8B7E6A;text-transform:uppercase;letter-spacing:0.06em;font-size:0.7rem;font-weight:600">{{ status }}</span>
+        <strong style="margin-left:0.4rem;color:#1A1818;font-size:1.05rem">{{ count }}</strong>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   {% if not rows %}
-    <p class="text-text-muted">Ни один ключ ещё не выпущен.</p>
+    <p style="color:#6B6661">Ключей пока нет.</p>
   {% else %}
-    <section class="bg-bg-card border border-border-light rounded-lg shadow-card overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-bg-section-alt">
-          <tr class="text-left">
-            <th class="px-4 py-3">ID</th>
-            <th class="px-4 py-3">Пользователь</th>
-            <th class="px-4 py-3">Название ключа</th>
-            <th class="px-4 py-3">Статус</th>
-            <th class="px-4 py-3">Создан</th>
-            <th class="px-4 py-3">Remnawave UUID</th>
-          </tr>
-        </thead>
-        <tbody>
+  <div style="background:#FFFCF6;border:1px solid rgba(184,147,90,0.24);border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(26,24,24,0.06)">
+    <table style="width:100%;border-collapse:collapse;font-size:0.875rem">
+      <thead>
+        <tr style="background:#EFE6D2">
+          <th style="text-align:left;padding:0.85rem 1.25rem;font-weight:600;letter-spacing:-0.01em">Ключ</th>
+          <th style="text-align:left;padding:0.85rem 1.25rem;font-weight:600;letter-spacing:-0.01em">Пользователь</th>
+          <th style="text-align:left;padding:0.85rem 1.25rem;font-weight:600;letter-spacing:-0.01em">Страна</th>
+          <th style="text-align:left;padding:0.85rem 1.25rem;font-weight:600;letter-spacing:-0.01em">Создан</th>
+          <th style="text-align:left;padding:0.85rem 1.25rem;font-weight:600;letter-spacing:-0.01em">Статус</th>
+        </tr>
+      </thead>
+      <tbody>
         {% for r in rows %}
-          <tr class="border-t border-border-light hover:bg-bg-section-alt">
-            <td class="px-4 py-2 font-mono text-xs">{{ r.key.id }}</td>
-            <td class="px-4 py-2">
-              <div>{{ r.user.email }}</div>
-              <div class="text-xs text-text-muted">user_id={{ r.user.id }}{% if r.user.is_admin %} · admin{% endif %}</div>
-            </td>
-            <td class="px-4 py-2">{{ r.key.label or '—' }}</td>
-            <td class="px-4 py-2">
-              {% if r.key.status == 'active' %}<span class="text-success">● active</span>
-              {% elif r.key.status == 'revoked' %}<span class="text-text-muted">● revoked</span>
-              {% else %}<span>{{ r.key.status }}</span>
-              {% endif %}
-            </td>
-            <td class="px-4 py-2 text-xs text-text-muted">{{ r.key.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
-            <td class="px-4 py-2 font-mono text-[10px] text-text-muted">{{ r.user.remnawave_short_uuid or '—' }}</td>
-          </tr>
+        <tr style="border-top:1px solid rgba(184,147,90,0.24)">
+          <td style="padding:0.85rem 1.25rem;font-weight:500">{{ r.key.label }}</td>
+          <td style="padding:0.85rem 1.25rem;color:#6B6661">{{ r.user.email }}</td>
+          <td style="padding:0.85rem 1.25rem;color:#6B6661">{{ (r.key.meta or {}).get('country_code', '—') }}</td>
+          <td style="padding:0.85rem 1.25rem;color:#6B6661">{{ r.key.created_at.strftime('%d.%m.%Y') }}</td>
+          <td style="padding:0.85rem 1.25rem">
+            <span style="font-size:0.74rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border-radius:999px;
+              {% if r.key.status == 'active' %}background:rgba(95,139,92,0.12);color:#4A7146{% else %}background:rgba(184,53,31,0.1);color:#B8351F{% endif %}">{{ r.key.status }}</span>
+          </td>
+        </tr>
         {% endfor %}
-        </tbody>
-      </table>
-    </section>
+      </tbody>
+    </table>
+  </div>
   {% endif %}
 </main>
+
 {% endblock %}
