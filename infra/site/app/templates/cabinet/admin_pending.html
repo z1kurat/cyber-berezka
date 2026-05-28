@@ -1,38 +1,51 @@
 {% extends "base.html" %}
 {% block title %}Pending users — Cyber Berezka{% endblock %}
 {% block content %}
-<main class="max-w-4xl mx-auto px-6 py-12">
-  <header class="flex items-center justify-between mb-8">
-    <h1 class="font-serif text-3xl">Pending users</h1>
-    <nav class="flex gap-4 text-sm">
-      <a href="/cabinet/admin/keys" class="text-accent-goldDk underline">Все ключи</a>
-      <a href="/cabinet" class="text-accent-goldDk underline">← В кабинет</a>
-    </nav>
+
+<main style="max-width:1100px;margin:0 auto;padding:8rem 2rem 4rem">
+  <header style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:3rem;flex-wrap:wrap;gap:1rem">
+    <div>
+      <div class="eyebrow"><span class="eyebrow-line"></span><span>Admin</span></div>
+      <h1 class="headline" style="font-size:clamp(1.8rem,3.6vw,2.4rem);margin:0">Pending users</h1>
+    </div>
+    <div style="display:flex;gap:1.25rem">
+      <a class="cta-secondary" href="/cabinet/admin/keys">Все ключи</a>
+      <a class="cta-secondary" href="/cabinet">← В кабинет</a>
+    </div>
   </header>
 
   {% if not users %}
-    <p class="text-text-muted">Сейчас нет пользователей, ожидающих одобрения.</p>
+    <p style="color:#6B6661;font-size:1.05rem">Сейчас нет пользователей, ожидающих одобрения.</p>
   {% else %}
-    <ul class="space-y-4">
+  <div style="display:flex;flex-direction:column;gap:1rem">
     {% for u in users %}
-      <li class="bg-bg-card border border-border-light rounded-lg shadow-card p-5">
-        <div class="font-medium">{{ u.email }}</div>
-        <div class="text-xs text-text-muted">Регистрация: {{ u.created_at.strftime('%d.%m.%Y %H:%M') }} · Email подтверждён: {{ u.email_verified_at.strftime('%d.%m.%Y %H:%M') }}{% if u.last_login_ip %} · IP: {{ u.last_login_ip }}{% endif %}</div>
-        <div class="mt-4 flex gap-3 items-end">
-          <form method="POST" action="/cabinet/admin/pending/{{ u.id }}/approve">
+    <div class="server-card" style="cursor:default">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap">
+        <div>
+          <div style="font-size:1.05rem;font-weight:600;letter-spacing:-0.01em">{{ u.email }}</div>
+          <div style="font-size:0.78rem;color:#8B7E6A;margin-top:0.25rem">
+            Регистрация: {{ u.created_at.strftime('%d.%m.%Y %H:%M') }}
+            · Email подтверждён: {{ u.email_verified_at.strftime('%d.%m.%Y %H:%M') }}
+            {% if u.last_login_ip %} · IP: {{ u.last_login_ip }}{% endif %}
+          </div>
+        </div>
+        <div style="display:flex;gap:0.6rem;align-items:flex-end;flex-wrap:wrap">
+          <form method="POST" action="/cabinet/admin/pending/{{ u.id }}/approve" style="display:inline">
             <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
-            <button class="btn-primary">Approve</button>
+            <button type="submit" class="cta-primary" style="padding:0.6rem 1.1rem;font-size:0.82rem">Одобрить</button>
           </form>
-          <form method="POST" action="/cabinet/admin/pending/{{ u.id }}/reject" class="flex gap-2 items-end">
+          <form method="POST" action="/cabinet/admin/pending/{{ u.id }}/reject" style="display:flex;gap:0.5rem">
             <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
             <input type="text" name="reason" maxlength="500" placeholder="Причина (опц.)"
-                   class="border border-border-light rounded px-3 py-2 bg-white text-sm">
-            <button class="px-4 py-2 border border-cta text-cta rounded hover:bg-cta hover:text-white transition">Reject</button>
+                   style="font-family:inherit;font-size:0.85rem;padding:0.55rem 0.8rem;background:#FDFAF3;border:1px solid rgba(184,147,90,0.24);border-radius:6px;min-width:160px">
+            <button type="submit" style="padding:0.55rem 1rem;border:1px solid #B8351F;color:#B8351F;background:transparent;border-radius:6px;font-family:inherit;font-size:0.82rem;font-weight:500;cursor:pointer">Отклонить</button>
           </form>
         </div>
-      </li>
+      </div>
+    </div>
     {% endfor %}
-    </ul>
+  </div>
   {% endif %}
 </main>
+
 {% endblock %}
