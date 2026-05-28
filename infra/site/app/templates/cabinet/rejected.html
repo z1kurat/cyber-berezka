@@ -1,17 +1,27 @@
 {% extends "base.html" %}
 {% block title %}Доступ отклонён — Cyber Berezka{% endblock %}
 {% block content %}
-<main class="max-w-2xl mx-auto px-6 py-16">
-  <div class="bg-bg-card border border-border-light rounded-lg shadow-card p-8">
-    <h1 class="font-serif text-3xl mb-4">Доступ отклонён</h1>
-    <p>К сожалению, ваша заявка отклонена администратором.</p>
-    {% if user.rejection_reason %}
-      <p class="mt-4"><strong>Причина:</strong> {{ user.rejection_reason }}</p>
-    {% endif %}
-    <form method="POST" action="/auth/logout" class="mt-8">
-      <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
-      <button class="text-sm text-text-muted underline">Выйти</button>
-    </form>
+<main class="hero" style="max-width:540px;padding-top:9rem;padding-bottom:6rem;text-align:center">
+  <div style="width:72px;height:72px;border-radius:50%;background:rgba(184,53,31,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 2rem">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke="#B8351F" stroke-width="2"/><path d="M9 9l6 6m0-6l-6 6" stroke="#B8351F" stroke-width="2" stroke-linecap="round"/>
+    </svg>
   </div>
+  <h1 class="headline" style="font-size:clamp(2rem,4.4vw,2.8rem);margin-bottom:1.5rem">
+    <span class="line"><span class="word" style="animation-delay:0.3s">Доступ</span> <span class="word accent" style="animation-delay:0.45s">отклонён.</span></span>
+  </h1>
+  <p class="lead">
+    К сожалению, ваша заявка отклонена администратором.
+  </p>
+  {% if user.rejection_reason %}
+    <div style="background:#FFFCF6;border:1px solid rgba(184,147,90,0.24);border-radius:8px;padding:1rem 1.25rem;margin:1.5rem 0;text-align:left">
+      <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.1em;color:#8B7E6A;text-transform:uppercase;margin-bottom:0.4rem">Причина</div>
+      <div style="color:#1A1818">{{ user.rejection_reason }}</div>
+    </div>
+  {% endif %}
+  <form method="POST" action="/auth/logout" style="margin-top:2.5rem">
+    <input type="hidden" name="csrf_token" value="{{ request.state.csrf_token or '' }}">
+    <button type="submit" class="cta-secondary" style="border:none;background:none;cursor:pointer;font-family:inherit">Выйти</button>
+  </form>
 </main>
 {% endblock %}
