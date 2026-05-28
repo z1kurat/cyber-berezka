@@ -1,143 +1,370 @@
 {% extends "base.html" %}
-
+{% block title %}Cyber Berezka — защищённое соединение{% endblock %}
 {% block content %}
-{# Hero #}
-<section class="relative overflow-hidden">
-    <div class="absolute inset-0 pointer-events-none opacity-30" aria-hidden="true">
-        {# Decorative birch silhouettes — pure CSS, no images #}
-        <div class="absolute -right-20 top-10 w-96 h-[600px] bg-gradient-to-br from-accent-gold/10 to-transparent rounded-full blur-3xl"></div>
-        <div class="absolute -left-20 top-40 w-80 h-[500px] bg-gradient-to-tr from-accent-gold/5 to-transparent rounded-full blur-3xl"></div>
-    </div>
 
-    <div class="relative max-w-6xl mx-auto px-6 pt-24 pb-20 md:pt-32 md:pb-28">
-        <div class="max-w-3xl">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-bg-card border border-border-light text-sm text-text-secondary mb-8 animate-fade-in-up">
-                <span class="status-dot"></span>
-                Защищённое соединение
-            </div>
+<!-- HERO CENTERED -->
+<header class="hero">
+  <div class="eyebrow">
+    <span class="eyebrow-line"></span>
+    <span>Защищённое соединение · с 2026</span>
+    <span class="eyebrow-line"></span>
+  </div>
+  <h1 class="headline">
+    <span class="line"><span class="word" style="animation-delay:0.3s">Кибер</span> <span class="word" style="animation-delay:0.45s">встречает</span></span>
+    <span class="line"><span class="word accent" style="animation-delay:0.6s">берёзу.</span></span>
+  </h1>
+  <p class="lead">
+    Шифрование интернета по российским правилам, на современных протоколах.
+    Серверы в Латвии, Нидерландах, Германии — спокойствие, проверенное вашим браузером.
+  </p>
+  <div class="cta-row">
+    <a class="cta-primary" id="ctaMagnet" href="/auth/register">
+      Начать защиту
+      <svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+    <a class="cta-secondary" href="#how">Как это работает <span class="arrow">→</span></a>
+  </div>
+  <div class="trust">
+    <div class="trust-item"><span class="trust-value" data-count="3">0 стран</span><span class="trust-label">собственная инфраструктура</span></div>
+    <div class="trust-item"><span class="trust-value">VLESS-Reality</span><span class="trust-label">современный протокол</span></div>
+    <div class="trust-item"><span class="trust-value"><span class="live-dot"></span>3/3 ноды</span><span class="trust-label">онлайн прямо сейчас</span></div>
+  </div>
+</header>
 
-            <h1 class="font-serif text-hero font-medium mb-6 animate-fade-in-up" style="animation-delay: 80ms">
-                Cyber<br>
-                <span class="text-accent-gold">Berezka</span>
-            </h1>
-
-            <p class="text-2xl md:text-3xl text-text-secondary font-light mb-12 animate-fade-in-up" style="animation-delay: 160ms">
-                Своё. Цифровое. Защищённое.
-            </p>
-
-            <div class="flex flex-wrap items-center gap-4 animate-fade-in-up" style="animation-delay: 240ms">
-                <a href="/auth/register" class="btn-primary">
-                    Начать защиту
-                    <span aria-hidden="true">→</span>
-                </a>
-                <a href="#features" class="btn-secondary">
-                    Узнать больше
-                </a>
-            </div>
+<!-- HERO PREVIEW -->
+<section class="hero-preview" id="previewStage">
+  <div class="preview-stage">
+    <div class="node-card tilt" data-speed="-1">
+      <div class="nc-head">
+        <div style="display:flex;align-items:center;gap:0.7rem">
+          <div class="nc-flag">🇱🇻</div>
+          <div><div class="nc-country">Латвия · Рига</div><div class="nc-city">212.74.231.217</div></div>
         </div>
+        <span class="nc-status"><span class="nc-status-dot"></span>Online</span>
+      </div>
+      <div class="nc-bar"><div class="nc-bar-fill" style="--fill:0.78"></div></div>
+      <div class="nc-meta">
+        <div class="nc-meta-item"><span class="nc-meta-label">Ping</span><span class="nc-meta-value">42 мс</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Полоса</span><span class="nc-meta-value">1 Гбит/с</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Нагрузка</span><span class="nc-meta-value">78%</span></div>
+      </div>
     </div>
+
+    <div class="node-card tilt" data-speed="2">
+      <div class="nc-head">
+        <div style="display:flex;align-items:center;gap:0.7rem">
+          <div class="nc-flag">🇳🇱</div>
+          <div><div class="nc-country">Нидерланды</div><div class="nc-city">Амстердам · 194.87.208.112</div></div>
+        </div>
+        <span class="nc-status"><span class="nc-status-dot"></span>Online</span>
+      </div>
+      <div class="nc-bar"><div class="nc-bar-fill" style="--fill:0.42"></div></div>
+      <div class="nc-meta">
+        <div class="nc-meta-item"><span class="nc-meta-label">Ping</span><span class="nc-meta-value">58 мс</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Полоса</span><span class="nc-meta-value">1 Гбит/с</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Нагрузка</span><span class="nc-meta-value">42%</span></div>
+      </div>
+    </div>
+
+    <div class="node-card tilt" data-speed="-1">
+      <div class="nc-head">
+        <div style="display:flex;align-items:center;gap:0.7rem">
+          <div class="nc-flag">🇩🇪</div>
+          <div><div class="nc-country">Германия</div><div class="nc-city">Франкфурт · Hetzner</div></div>
+        </div>
+        <span class="nc-status"><span class="nc-status-dot"></span>Online</span>
+      </div>
+      <div class="nc-bar"><div class="nc-bar-fill" style="--fill:0.61"></div></div>
+      <div class="nc-meta">
+        <div class="nc-meta-item"><span class="nc-meta-label">Ping</span><span class="nc-meta-value">47 мс</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Полоса</span><span class="nc-meta-value">1 Гбит/с</span></div>
+        <div class="nc-meta-item"><span class="nc-meta-label">Нагрузка</span><span class="nc-meta-value">61%</span></div>
+      </div>
+    </div>
+
+    <!-- Connection lines + flying paper planes between server cards -->
+    <div class="conn conn-1">
+      <svg class="plane" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22 2 L2 11 L10 13 L12 21 L22 2 Z" opacity="0.95"/>
+        <path d="M10 13 L22 2" stroke="rgba(0,0,0,0.18)" stroke-width="0.7" fill="none"/>
+      </svg>
+    </div>
+    <div class="conn conn-2">
+      <svg class="plane" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22 2 L2 11 L10 13 L12 21 L22 2 Z" opacity="0.95"/>
+        <path d="M10 13 L22 2" stroke="rgba(0,0,0,0.18)" stroke-width="0.7" fill="none"/>
+      </svg>
+    </div>
+  </div>
 </section>
 
-{# Features #}
-<section id="features" class="py-24 bg-bg-alt">
-    <div class="max-w-6xl mx-auto px-6">
-        <h2 class="font-serif text-4xl md:text-5xl mb-4">Когда это нужно</h2>
-        <p class="text-text-secondary text-lg mb-16 max-w-2xl">
-            Шифрование защищает ваши данные в ситуациях, где обычное соединение уязвимо.
-        </p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {% for f in features %}
-            <article class="card card-hover">
-                <div class="text-4xl mb-5">{{ f.icon }}</div>
-                <h3 class="text-xl font-serif mb-3">{{ f.title }}</h3>
-                <p class="text-text-secondary leading-relaxed">{{ f.text }}</p>
-            </article>
-            {% endfor %}
-        </div>
-    </div>
+<!-- MARQUEE -->
+<section class="marquee">
+  <div class="marquee-track">
+    <span class="marquee-item">Шифрование</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">Приватность</span><span class="marquee-dot"></span>
+    <span class="marquee-item">Скорость</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">Без логов</span><span class="marquee-dot"></span>
+    <span class="marquee-item">3 страны</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">VLESS-Reality</span><span class="marquee-dot"></span>
+    <span class="marquee-item">Шифрование</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">Приватность</span><span class="marquee-dot"></span>
+    <span class="marquee-item">Скорость</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">Без логов</span><span class="marquee-dot"></span>
+    <span class="marquee-item">3 страны</span><span class="marquee-dot"></span>
+    <span class="marquee-item accent">VLESS-Reality</span><span class="marquee-dot"></span>
+  </div>
 </section>
 
-{# Tech trust #}
-<section class="py-24">
-    <div class="max-w-6xl mx-auto px-6">
-        <div class="text-center mb-16">
-            <h2 class="font-serif text-4xl md:text-5xl mb-4">Технологии</h2>
-            <p class="text-text-secondary text-lg max-w-xl mx-auto">
-                Современные стандарты шифрования и инфраструктура за пределами юрисдикции РФ.
-            </p>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {% for t in tech_facts %}
-            <div class="text-center">
-                <div class="font-serif text-4xl md:text-5xl text-accent-gold mb-3">{{ t.big }}</div>
-                <div class="text-sm text-text-secondary leading-relaxed">{{ t.text }}</div>
-            </div>
-            {% endfor %}
-        </div>
-        <div class="gold-divider mt-16"></div>
-    </div>
+<!-- STATS -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat reveal" style="--i:0"><div class="stat-num" data-counter="3"><span>3</span><span class="unit">страны</span></div><div class="stat-label">собственная инфраструктура</div></div>
+    <div class="stat reveal reveal-delay-1" style="--i:1"><div class="stat-num" data-counter="99.9"><span>99.9</span><span class="unit">%</span></div><div class="stat-label">аптайм за квартал</div></div>
+    <div class="stat reveal reveal-delay-2" style="--i:2"><div class="stat-num" data-counter="1"><span>1</span><span class="unit">Гбит/с</span></div><div class="stat-label">пропускная способность ноды</div></div>
+    <div class="stat reveal reveal-delay-3" style="--i:3"><div class="stat-num">0</div><div class="stat-label">записанных логов трафика</div></div>
+  </div>
 </section>
 
-{% include "landing/_server_list.html" ignore missing %}
+<div class="divider"><div class="divider-inner"></div></div>
 
-{# How it works #}
-<section id="how-it-works" class="py-24 bg-bg-alt">
-    <div class="max-w-6xl mx-auto px-6">
-        <h2 class="font-serif text-4xl md:text-5xl mb-16 text-center">Как это работает</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="text-center">
-                <div class="font-serif text-6xl text-accent-gold/30 mb-4">1</div>
-                <h3 class="text-xl font-serif mb-3">Регистрация по email</h3>
-                <p class="text-text-secondary leading-relaxed">Минимум данных — только email и пароль.</p>
-            </div>
-            <div class="text-center">
-                <div class="font-serif text-6xl text-accent-gold/30 mb-4">2</div>
-                <h3 class="text-xl font-serif mb-3">Получите ключ за 30 секунд</h3>
-                <p class="text-text-secondary leading-relaxed">Один клик в кабинете — мгновенная генерация подписки.</p>
-            </div>
-            <div class="text-center">
-                <div class="font-serif text-6xl text-accent-gold/30 mb-4">3</div>
-                <h3 class="text-xl font-serif mb-3">Подключение в один клик</h3>
-                <p class="text-text-secondary leading-relaxed">Импорт в приложение по ссылке или QR-коду.</p>
-            </div>
+<!-- ABOUT NAME -->
+<section class="about-name" id="about">
+  <div class="about-name-bg-letter">Б</div>
+  <div class="about-name-grid">
+    <div class="about-art tilt">
+      <svg class="single-leaf" viewBox="0 0 60 80" style="color:#966D40"><use href="#leaf"/></svg>
+      <div class="leaf-meta"><span>Betula Cybera · 2026</span><span>specimen 01</span></div>
+    </div>
+    <div>
+      <div class="section-tag reveal"><span class="section-tag-line"></span><span>О названии</span></div>
+      <h2 class="reveal reveal-delay-1">«Берёзка» — это <em>не ностальгия</em>.<br>Это спокойствие.</h2>
+      <p class="reveal reveal-delay-2">
+        Берёза в русской культуре — дерево границы между «здесь» и «снаружи». Тонкая кора скрывает структуру: что внутри — не видно, но всё работает. Так же и наш сервис: <strong>трафик идёт через ноду</strong>, провайдер видит только зашифрованное соединение.
+      </p>
+      <p class="reveal reveal-delay-3">
+        «Кибер» добавляет современный протокол VLESS-Reality, ноды в трёх странах, ключи на собственное устройство. Но философия остаётся: <strong>не привлекать к себе внимания</strong>, работать незаметно.
+      </p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-inner"></div></div>
+
+<!-- STEPS -->
+<section class="section" id="how">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Три шага</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Подключение за минуту,<br>без лишних программ.</h2>
+  <p class="lead reveal reveal-delay-2" style="opacity:0;animation:none;margin:0">
+    Регистрация по email, ключ выдаётся автоматически после подтверждения. Импорт в любой клиент по ссылке или QR-коду.
+  </p>
+  <div class="steps-grid">
+    <div class="step tilt reveal reveal-delay-1">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="#1A1818" stroke-width="2"/><path d="M3 8l9 6 9-6" stroke="#1A1818" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="step-number">Шаг 1</div>
+      <h3 class="step-title">Регистрация</h3>
+      <p class="step-text">Введите email, подтвердите его и заполните короткую анкету. Доступ выдаётся в течение суток после ручной проверки.</p>
+    </div>
+    <div class="step tilt reveal reveal-delay-2">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="9" width="16" height="11" rx="1.5" stroke="#1A1818" stroke-width="2"/><path d="M8 9V6a4 4 0 018 0v3" stroke="#1A1818" stroke-width="2" stroke-linecap="round"/></svg></div>
+      <div class="step-number">Шаг 2</div>
+      <h3 class="step-title">Получение ключа</h3>
+      <p class="step-text">В кабинете создайте именованный ключ, привязанный к одной из доступных стран. Скачайте конфиг или отсканируйте QR.</p>
+    </div>
+    <div class="step tilt reveal reveal-delay-3">
+      <div class="step-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="#1A1818" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="step-number">Шаг 3</div>
+      <h3 class="step-title">Подключение</h3>
+      <p class="step-text">Импортируйте ключ в v2RayTun, Hiddify или другой совместимый клиент. Один клик — и соединение защищено.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-inner"></div></div>
+
+<!-- SERVERS -->
+<section class="section" id="servers">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Серверы</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Три страны.<br>Свои ноды, не аренда.</h2>
+  <p class="lead reveal reveal-delay-2" style="opacity:0;animation:none;margin:0">
+    Все серверы развернуты у проверенных datacenter-провайдеров. Не у третьих лиц, не reseller.
+  </p>
+  <div class="servers-grid">
+    <div class="server-card tilt reveal reveal-delay-1">
+      <div class="server-flag">🇱🇻</div><div class="server-country">Латвия</div><div class="server-city">Рига · 212.74.231.217</div>
+      <div class="server-stat"><span class="server-stat-label">Протокол</span><span class="server-stat-value">VLESS-Reality</span></div>
+      <div class="server-stat"><span class="server-stat-label">Полоса</span><span class="server-stat-value">1 Гбит/с</span></div>
+      <div class="server-stat"><span class="server-stat-label">Datacenter</span><span class="server-stat-value">Beget</span></div>
+      <span class="server-status"><span class="server-status-dot"></span>Онлайн · 42 мс</span>
+    </div>
+    <div class="server-card tilt reveal reveal-delay-2">
+      <div class="server-flag">🇳🇱</div><div class="server-country">Нидерланды</div><div class="server-city">Амстердам · 194.87.208.112</div>
+      <div class="server-stat"><span class="server-stat-label">Протокол</span><span class="server-stat-value">VLESS-Reality</span></div>
+      <div class="server-stat"><span class="server-stat-label">Полоса</span><span class="server-stat-value">1 Гбит/с</span></div>
+      <div class="server-stat"><span class="server-stat-label">Datacenter</span><span class="server-stat-value">TimeWeb</span></div>
+      <span class="server-status"><span class="server-status-dot"></span>Онлайн · 58 мс</span>
+    </div>
+    <div class="server-card tilt reveal reveal-delay-3">
+      <div class="server-flag">🇩🇪</div><div class="server-country">Германия</div><div class="server-city">Франкфурт · 159.69.198.143</div>
+      <div class="server-stat"><span class="server-stat-label">Протокол</span><span class="server-stat-value">VLESS-Reality</span></div>
+      <div class="server-stat"><span class="server-stat-label">Полоса</span><span class="server-stat-value">1 Гбит/с</span></div>
+      <div class="server-stat"><span class="server-stat-label">Datacenter</span><span class="server-stat-value">Hetzner</span></div>
+      <span class="server-status"><span class="server-status-dot"></span>Онлайн · 47 мс</span>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Возможности</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Свойства, которые<br>работают молча.</h2>
+  <div style="height: 3.5rem"></div>
+
+  <div class="feature-row reveal">
+    <div>
+      <div class="feature-eyebrow">Шифрование</div>
+      <h3 class="feature-title">Reality protocol — современнее, чем «обычный VPN»</h3>
+      <p class="feature-text">VLESS-Reality маскирует ваш трафик под обычное HTTPS-соединение с настоящим сайтом. Никакой DPI не отличит.</p>
+      <ul class="feature-list">
+        <li>TLS 1.3 + Reality fingerprint</li>
+        <li>Подделка под www.microsoft.com на уровне TLS-handshake</li>
+        <li>Поддержка XTLS-Vision для производительности</li>
+      </ul>
+    </div>
+    <div class="feature-art tilt">
+      <div class="term">
+        <span class="term-line"><span class="term-prompt">$ </span>curl --resolve www.microsoft.com:443:212.74.231.217</span>
+        <span class="term-line term-output">HTTP/2 200</span>
+        <span class="term-line term-output">server: microsoft-iis/10.0</span>
+        <span class="term-line term-output">x-trace-id: <span style="color:var(--gold)">A1B2C3D4</span></span>
+        <span class="term-line"><span class="term-prompt">$ </span><span class="term-typing">tcpdump -i any port 8443</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="feature-row reveal">
+    <div>
+      <div class="feature-eyebrow">Управление</div>
+      <h3 class="feature-title">Личный кабинет — без перегруза</h3>
+      <p class="feature-text">Один список ключей. Каждый — для своего устройства. Копирование, QR-код, отзыв — в одном клике.</p>
+      <ul class="feature-list">
+        <li>До 3 ключей одновременно</li>
+        <li>Привязка ключа к одной стране</li>
+        <li>Отзыв ключа без влияния на остальные</li>
+      </ul>
+    </div>
+    <div class="feature-art tilt">
+      <div class="cab-card">
+        <div class="cab-card-head">
+          <div>
+            <div class="cab-card-title">iPhone · 🇱🇻 Латвия</div>
+            <div class="cab-card-sub">Создан 24.05.2026 · Использовался сегодня в 14:32</div>
+          </div>
+          <span class="cab-badge">Активен</span>
         </div>
-    </div>
-</section>
-
-{# FAQ #}
-<section id="faq" class="py-24">
-    <div class="max-w-3xl mx-auto px-6">
-        <h2 class="font-serif text-4xl md:text-5xl mb-12 text-center">Частые вопросы</h2>
-        <div class="space-y-4" x-data="{ open: null }">
-            {% for item in faq %}
-            <article class="card !p-0 overflow-hidden">
-                <button
-                    @click="open = (open === {{ loop.index }} ? null : {{ loop.index }})"
-                    class="w-full text-left px-8 py-6 flex items-center justify-between gap-4 hover:bg-bg-alt/50 transition">
-                    <span class="font-serif text-xl">{{ item.q }}</span>
-                    <span class="text-accent-gold text-2xl transition-transform"
-                          :class="open === {{ loop.index }} ? 'rotate-45' : ''">+</span>
-                </button>
-                <div x-show="open === {{ loop.index }}" x-collapse class="px-8 pb-6 text-text-secondary leading-relaxed">
-                    {{ item.a }}
-                </div>
-            </article>
-            {% endfor %}
+        <div class="cab-key">vless://4d37c9e0-2f1f-4b7e-9100-4c0667eac7a6@212.74.231.217:8443?...</div>
+        <div class="cab-actions">
+          <button class="cab-btn">Скопировать</button>
+          <button class="cab-btn outline">QR-код</button>
         </div>
+      </div>
     </div>
+  </div>
 </section>
 
-{# CTA repeat #}
-<section class="py-24 bg-bg-alt">
-    <div class="max-w-2xl mx-auto px-6 text-center">
-        <h2 class="font-serif text-4xl md:text-5xl mb-4">Готовы начать?</h2>
-        <p class="text-text-secondary text-lg mb-8">
-            Регистрация занимает минуту. Первый ключ — сразу после подтверждения email.
-        </p>
-        <a href="/auth/register" class="btn-primary text-lg">
-            Зарегистрироваться
-            <span aria-hidden="true">→</span>
-        </a>
+<!-- COMPARISON -->
+<section class="compare-section">
+  <div class="bark-pattern"></div>
+  <div class="compare-inner">
+    <div class="section-tag reveal"><span class="section-tag-line"></span><span>Сравнение</span></div>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:left">Берёзка против<br>«обычного VPN».</h2>
+    <p class="lead reveal reveal-delay-2" style="opacity:0;animation:none;margin:0;text-align:left">
+      Без маркетинговых обещаний. Технические факты — и то, что эти факты значат для пользователя.
+    </p>
+    <div class="compare-table reveal reveal-delay-3">
+      <div class="ct-cell ct-head"><div><div class="col-tag">Характеристика</div></div></div>
+      <div class="ct-cell ct-head"><div><div class="col-tag" style="color:var(--gold)">Cyber Berezka</div><div style="font-size:1rem">наш сервис</div></div></div>
+      <div class="ct-cell ct-head"><div><div class="col-tag" style="color:var(--muted-2)">Обычный</div><div style="font-size:1rem">типичный VPN</div></div></div>
+      <div class="ct-cell ct-row-label">Протокол шифрования</div>
+      <div class="ct-cell ct-our highlight"><strong>VLESS-Reality (2024+)</strong></div>
+      <div class="ct-cell ct-other">OpenVPN / WireGuard</div>
+      <div class="ct-cell ct-row-label">Обнаружение DPI</div>
+      <div class="ct-cell ct-our ct-yes highlight">Маскируется под HTTPS</div>
+      <div class="ct-cell ct-other ct-no">Видим как VPN-трафик</div>
+      <div class="ct-cell ct-row-label">Логи трафика</div>
+      <div class="ct-cell ct-our ct-yes highlight">Не сохраняются</div>
+      <div class="ct-cell ct-other">Зависит от провайдера</div>
+      <div class="ct-cell ct-row-label">Серверы</div>
+      <div class="ct-cell ct-our highlight"><strong>Свои · 3 страны</strong></div>
+      <div class="ct-cell ct-other">Часто аренда/reseller</div>
+      <div class="ct-cell ct-row-label">Ключи на устройство</div>
+      <div class="ct-cell ct-our ct-yes highlight">До 3 отдельных ключей</div>
+      <div class="ct-cell ct-other">1 общий аккаунт</div>
+      <div class="ct-cell ct-row-label">Юр.прозрачность</div>
+      <div class="ct-cell ct-our ct-yes highlight">ИП РФ, оферта, ОГРНИП</div>
+      <div class="ct-cell ct-other ct-no">Часто оффшор</div>
+      <div class="ct-cell ct-row-label">Цена за год</div>
+      <div class="ct-cell ct-our highlight"><strong>3 480 ₽</strong></div>
+      <div class="ct-cell ct-other">4 000–6 000 ₽</div>
     </div>
+  </div>
 </section>
+
+<div class="divider"><div class="divider-inner"></div></div>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Тарифы</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Один тариф. Без скрытых условий.</h2>
+  <p class="lead reveal reveal-delay-2" style="opacity:0;animation:none;margin:0">Платите за месяц, полгода или год. Чем дольше — тем выгоднее.</p>
+  <div class="pricing-grid">
+    <div class="price-card tilt reveal reveal-delay-1">
+      <div class="price-name">Месяц</div>
+      <div class="price-amount"><span class="price-num">490</span><span class="price-per">₽/месяц</span></div>
+      <p class="price-desc">Попробовать сервис без обязательств. Отказ в любой момент.</p>
+      <ul class="price-features"><li>До 3 устройств</li><li>3 страны на выбор</li><li>Безлимитный трафик</li></ul>
+      <a class="price-cta outline" href="/auth/register">Выбрать</a>
+    </div>
+    <div class="price-card featured reveal reveal-delay-2">
+      <div class="price-name">Полгода</div>
+      <div class="price-amount"><span class="price-num">390</span><span class="price-per">₽/месяц</span></div>
+      <p class="price-desc">Экономия 20%. Идеальный баланс цены и обязательств.</p>
+      <ul class="price-features"><li>Всё из «Месяца»</li><li>Приоритетная поддержка</li><li>Доступ к beta-серверам</li></ul>
+      <a class="price-cta primary" href="/auth/register">Выбрать</a>
+    </div>
+    <div class="price-card tilt reveal reveal-delay-3">
+      <div class="price-name">Год</div>
+      <div class="price-amount"><span class="price-num">290</span><span class="price-per">₽/месяц</span></div>
+      <p class="price-desc">Максимальная экономия — 40%. Для тех, кто уверен.</p>
+      <ul class="price-features"><li>Всё из «Полгода»</li><li>Гарантированная цена 12 месяцев</li><li>+1 дополнительный ключ</li></ul>
+      <a class="price-cta outline" href="/auth/register">Выбрать</a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-inner"></div></div>
+
+<!-- FAQ -->
+<section class="section" id="faq" style="max-width: 880px">
+  <div class="section-tag reveal"><span class="section-tag-line"></span><span>Вопросы</span></div>
+  <h2 class="section-title reveal reveal-delay-1">Что важно знать?</h2>
+  <div class="faq-list reveal reveal-delay-2">
+    <div class="faq-item"><div class="faq-q"><span>Это законно? Что значит «защищённое соединение»?</span><span class="faq-icon"></span></div><div class="faq-a">Cyber Berezka шифрует ваше интернет-соединение, защищая данные в публичных сетях (кафе, аэропорты, отели) и от слежки на уровне провайдера. Мы не позиционируем себя как сервис для обхода блокировок и не оказываем такие услуги.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>Какие приложения поддерживаются?</span><span class="faq-icon"></span></div><div class="faq-a">Любой клиент с поддержкой VLESS-Reality: v2RayTun (iOS, Android, macOS, Windows), Hiddify, NekoBox, V2Box. Импорт по ссылке подписки или QR-коду.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>Сохраняете ли вы логи моей активности?</span><span class="faq-icon"></span></div><div class="faq-a">Нет. На наших серверах не настроено никакой записи о посещаемых сайтах, объёме переданных данных и метаданных трафика. Хранится только время последнего использования ключа.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>Можно ли использовать на нескольких устройствах?</span><span class="faq-icon"></span></div><div class="faq-a">Да, до 3 одновременных подключений на один аккаунт. Каждое устройство получает собственный именованный ключ с возможностью отзыва.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>Как происходит оплата?</span><span class="faq-icon"></span></div><div class="faq-a">Оплата российской картой через ЮKassa. Подписка не продлевается автоматически — после окончания периода вы получаете напоминание и продлеваете вручную.</div></div>
+    <div class="faq-item"><div class="faq-q"><span>А почему «Берёзка»?</span><span class="faq-icon"></span></div><div class="faq-a">Берёза — тонкое, спокойное и узнаваемое дерево. Мы хотели бренд, который чувствуется «своим» для русскоязычной аудитории и не пытается выглядеть как ещё один безликий «GuardVPN». «Кибер» добавляет современный технологический контекст.</div></div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final">
+  <h2 class="final-title reveal">Готовы <em>начать</em>?</h2>
+  <p class="final-text reveal reveal-delay-1">Регистрация занимает минуту. Первый ключ — через час после подтверждения email.</p>
+  <div class="reveal reveal-delay-2" style="display:inline-block">
+    <a class="cta-primary" href="/auth/register">Создать аккаунт<svg viewBox="0 0 20 20" fill="none"><path d="M4 10h12m0 0l-4-4m4 4l-4 4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  </div>
+</section>
+
 {% endblock %}
