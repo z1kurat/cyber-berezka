@@ -60,9 +60,9 @@ class Settings(BaseSettings):
     )
 
     # New host names (Stage-aware via .env; defaults match Stage 1 nip.io).
-    site_host: str = Field(default="212-74-231-217.nip.io", alias="SITE_HOST")
+    site_host: str = Field(default="194-36-208-185.nip.io", alias="SITE_HOST")
     admin_host: str = Field(
-        default="admin.212-74-231-217.nip.io", alias="ADMIN_HOST"
+        default="admin.194-36-208-185.nip.io", alias="ADMIN_HOST"
     )
 
 
